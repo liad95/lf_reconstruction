@@ -1139,5 +1139,896 @@ In our case, we care only for
 
 \end_layout
 
+\begin_layout Standard
+\begin_inset Formula 
+\[
+k\cdot r=k_{x}x+k_{y}y+k_{z}z
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left|k\right|^{2}=1\Rightarrow k_{x}^{2}+k_{y}^{2}+k_{z}^{2}=a
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Part*
+Building the Forward Warping Algorithm
+\end_layout
+
+\begin_layout Standard
+From the previous algorithm developement, the forward warping will be like
+ so:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\hat{LF}=LF\left(\vec{r}-\Delta P\left(\Psi\left(\vec{r}+\Delta P\left(\vec{\theta}\right)\right)\right),\vec{\theta}+\Psi\left(\vec{r}+\Delta P\left(\vec{\theta}\right)\right)\right)
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\Rightarrow LF\left(\vec{r},\vec{\theta}\right)\to\hat{LF}\left(\vec{r}+\Delta P\left(\Psi\left(\vec{r}+\Delta P\left(\vec{\theta}\right)\right)\right),\vec{\theta}-\Psi\left(\vec{r}+\Delta P\left(\vec{\theta}\right)\right)\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Thus, this is the algorithm:
+\end_layout
+
+\begin_layout Section*
+1.
+\end_layout
+
+\begin_layout Standard
+Using 
+\begin_inset Formula $LGFT$
+\end_inset
+
+ or algorithm of your choice find the 
+\begin_inset Formula $\delta\vec{k}$
+\end_inset
+
+ from the mask.
+\end_layout
+
+\begin_layout Standard
+We will define 
+\begin_inset Formula $\delta\vec{k}$
+\end_inset
+
+ where it is normalized without 
+\begin_inset Formula $\frac{2\pi}{\lambda}$
+\end_inset
+
+.
+ Meaning 
+\begin_inset Formula $k=\sin\theta$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Section*
+2.
+\end_layout
+
+\begin_layout Standard
+For each point 
+\begin_inset Formula $\vec{r},\sin\vec{\theta}$
+\end_inset
+
+ in the given light field, calculate:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\delta\vec{k}\left(\vec{r}+\Delta P\left(\sin\vec{\theta}\right)\right)=\delta\vec{k}\left(\vec{r}+L\frac{\vec{k}\left(\sin\vec{\theta}\right)}{k_{z}}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+If we assume that 
+\begin_inset Formula $k_{z}\approx1$
+\end_inset
+
+ this is even easier:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+=\delta\vec{k}\left(\vec{r}+L\left[\sin\theta_{x}\hat{x}+\sin\theta_{y}\hat{y}\right]\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Then find:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\vec{r}+\Delta P\left(\delta\vec{k}\left(\vec{r}+\Delta P\left(\sin\vec{\theta}\right)\right)\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Again, using paraxial assumtion:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+=\vec{r}+L\cdot\delta\vec{k}\left(\vec{r}+L\left[\sin\theta_{x}\hat{x}+\sin\theta_{y}\hat{y}\right]\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+3.
+\end_layout
+
+\begin_layout Standard
+Now, define a new LightField, such that:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+LF_{new}\left(\vec{r},\sin\vec{\theta}\right)=
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+LF\left(\vec{r}-L\cdot\delta\vec{k}\left(\vec{r}+L\left[\sin\theta_{x}\hat{x}+\sin\theta_{y}\hat{y}\right]\right),\sin\vec{\theta}+\delta\vec{k}\left(\vec{r}+L\left[\sin\theta_{x}\hat{x}+\sin\theta_{y}\hat{y}\right]\right)\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This should be done using some type of interpolation, as the points are
+ quite discrete.
+\end_layout
+
+\begin_layout Part*
+Find Ideal Mask
+\end_layout
+
+\begin_layout Standard
+We will find the ideal mask using a sort of gradient descent.
+ We want to maximize the following function:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\mathcal{F}=\sum_{r}\mathcal{I}\left\{ r\in A\right\} \cdot LF_{og}\left(r_{og},\theta_{og}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Where 
+\begin_inset Formula $A$
+\end_inset
+
+ is a mask of interest, 
+\begin_inset Formula $LF_{og}$
+\end_inset
+
+ is the given LF.
+ Theerefore:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\vec{\phi}=\underset{\vec{\phi}}{\text{argmax}}\mathcal{F}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This is very hard to do, as 
+\begin_inset Formula $\vec{\phi}$
+\end_inset
+
+ is of a very high dimension (many pixels) and there is no analytical expression
+ for the gradient of 
+\begin_inset Formula $\mathcal{F}$
+\end_inset
+
+ with regards to it.
+ Therefore, we will perform the gradient for each pixel seperately and then
+ combine this in the gradient descent step (ascent in our case):
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\phi=\phi+\eta\nabla_{\phi}\mathcal{F}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+Algorithm
+\end_layout
+
+\begin_layout Enumerate
+We will only look at the 
+\begin_inset Formula $\vec{r}$
+\end_inset
+
+ in the mask, as this is what interests us.
+ Notice that we can do this only for the backward reconstruction, as in
+ the forward we don't know the locations in the reconstructed LF until the
+ end.
+\end_layout
+
+\begin_layout Enumerate
+We will look at a specific pixel location 
+\begin_inset Formula $\vec{q}$
+\end_inset
+
+ in the phase mask.
+ The relevant locations in the reconstructed LF follow:
+\begin_inset Formula 
+\[
+\vec{r}+L\frac{\sin\vec{\theta}}{\sqrt{1-\left|\sin\vec{\theta}\right|^{2}}}=\vec{q}
+\]
+
+\end_inset
+
+Or in the case of interpolation:
+\begin_inset Formula 
+\[
+\left|x+L\frac{\sin\theta_{x}}{\sqrt{1-\left|\sin\vec{\theta}\right|^{2}}}-q_{x}\right|\le\text{phase mask pixel size}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\left|y+L\frac{\sin\theta_{y}}{\sqrt{1-\left|\sin\vec{\theta}\right|^{2}}}-q_{y}\right|\le\text{phase mask pixel size}
+\]
+
+\end_inset
+
+Notice that we only need to perform this once in the whole algorithm run,
+ as these locations are not dependent on the value of the phase mask.
+\end_layout
+
+\begin_layout Enumerate
+For the relevant 
+\begin_inset Formula $\vec{r},\sin\vec{\theta}$
+\end_inset
+
+ perform reconstruction, and find the gradient of the sum, with regards
+ to 
+\begin_inset Formula $\vec{\phi}\left(\vec{q}\right)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+Perform the step for all 
+\begin_inset Formula $\vec{q}$
+\end_inset
+
+:
+\begin_inset Formula 
+\[
+\phi\left(\vec{q}\right)\leftarrow\phi\left(\vec{q}\right)+\eta\nabla_{\phi\left(\vec{q}\right)}\mathcal{F}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+Algorithm For Forward
+\end_layout
+
+\begin_layout Standard
+This will be quite similar, just without the first step:
+\end_layout
+
+\begin_layout Enumerate
+We will look at a specific pixel location 
+\begin_inset Formula $\vec{q}$
+\end_inset
+
+ in the phase mask.
+ The relevant locations in the original LF follow:
+\begin_inset Formula 
+\[
+\vec{r}+L\frac{\sin\vec{\theta}}{\sqrt{1-\left|\sin\vec{\theta}\right|^{2}}}=\vec{q}
+\]
+
+\end_inset
+
+Or in the case of interpolation:
+\begin_inset Formula 
+\[
+\left|x+L\frac{\sin\theta_{x}}{\sqrt{1-\left|\sin\vec{\theta}\right|^{2}}}-q_{x}\right|\le\text{phase mask pixel size}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\left|y+L\frac{\sin\theta_{y}}{\sqrt{1-\left|\sin\vec{\theta}\right|^{2}}}-q_{y}\right|\le\text{phase mask pixel size}
+\]
+
+\end_inset
+
+Notice that we only need to perform this once in the whole algorithm run,
+ as these locations are not dependent on the value of the phase mask.
+\end_layout
+
+\begin_layout Enumerate
+For the relevant 
+\begin_inset Formula $\vec{r},\sin\vec{\theta}$
+\end_inset
+
+ perform reconstruction, apply a binary mask 
+\begin_inset Formula $A$
+\end_inset
+
+, and find the gradient of the sum, with regards to 
+\begin_inset Formula $\vec{\phi}\left(\vec{q}\right)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+Perform the step for all 
+\begin_inset Formula $\vec{q}$
+\end_inset
+
+:
+\begin_inset Formula 
+\[
+\phi\left(\vec{q}\right)\leftarrow\phi\left(\vec{q}\right)+\eta\nabla_{\phi\left(\vec{q}\right)}\mathcal{F}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+Advanced Algorithms For Forward
+\end_layout
+
+\begin_layout Standard
+Instead of performing a gradient step for each pixel we can do this:
+\end_layout
+
+\begin_layout Standard
+There is a forward function 
+\begin_inset Formula $f$
+\end_inset
+
+ that takes 
+\begin_inset Formula $r,\theta\to r'$
+\end_inset
+
+.
+ Thus, the cost is:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\mathcal{F}=\sum_{r\left(r_{og},\theta_{og}\right)}\mathcal{I}\left\{ r\left(r_{og},\theta_{og}\right)\in A\right\} \cdot LF_{og}\left(r_{og},\theta_{og}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+=\sum_{r,\theta}\mathcal{I}\left\{ f\left(r,\theta\right)\in A\right\} \cdot LF_{og}\left(r,\theta\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Of course:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+f\left(r,\theta\right)=\vec{r}+L\cdot\vec{\phi}\left(\vec{r}+L\left[\sin\theta_{x}\hat{x}+\sin\theta_{y}\hat{y}\right]\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Where 
+\begin_inset Formula $\phi$
+\end_inset
+
+ is the phase mask.
+ Thus:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\mathcal{F}=\sum_{r,\theta}\mathcal{I}\left\{ \vec{r}+L\cdot\vec{\phi}\left(\vec{r}+L\left[\sin\theta_{x}\hat{x}+\sin\theta_{y}\hat{y}\right]\right)\in A\right\} \cdot LF_{og}\left(r,\theta\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+=\sum_{\theta}\sum_{r}\mathcal{I}\left\{ \vec{r}+L\cdot\vec{\phi}\left(\vec{r}+L\left[\sin\theta_{x}\hat{x}+\sin\theta_{y}\hat{y}\right]\right)\in A\right\} \cdot LF_{og}\left(r,\theta\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+In this case we can apply a slight change in 
+\begin_inset Formula $\phi$
+\end_inset
+
+ such as 
+\begin_inset Formula $\delta\phi$
+\end_inset
+
+.
+ Thus:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\mathcal{F}=\sum_{\theta}\sum_{r}\mathcal{I}\left\{ \vec{r}+L\cdot\left[\vec{\phi}\left(\vec{r}+L\left[\sin\theta_{x}\hat{x}+\sin\theta_{y}\hat{y}\right]\right)\right.\right.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left.\left.+\delta\phi\left(\vec{r}+L\left[\sin\theta_{x}\hat{x}+\sin\theta_{y}\hat{y}\right]\right)\right]\in A\right\} \cdot LF_{og}\left(r,\theta\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Thus:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\Delta\mathcal{F}=\sum_{\theta}\sum_{r}\Delta\mathcal{I}\left(r,\theta\right)\cdot LF_{og}\left(r,\theta\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Where 
+\begin_inset Formula $\Delta\mathcal{I}\left(r,\theta\right)$
+\end_inset
+
+ would be define:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\Delta\mathcal{I}\left(r,\theta\right)=\mathcal{I}\left\{ \vec{r}+L\cdot\vec{\phi}\left(\vec{r}+L\left[\sin\theta_{x}\hat{x}+\sin\theta_{y}\hat{y}\right]\right)\in A\right\} 
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+-\mathcal{I}\left\{ \vec{r}+L\cdot\left[\vec{\phi}\left(\vec{r}+L\left[\sin\theta_{x}\hat{x}+\sin\theta_{y}\hat{y}\right]\right)\right.\right.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left.\left.+\delta\phi\left(\vec{r}+L\left[\sin\theta_{x}\hat{x}+\sin\theta_{y}\hat{y}\right]\right)\right]\in A\right\} 
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This could work of course, If we don't care about the edge cases, where
+ 
+\begin_inset Formula $f\left(r,\theta\right)$
+\end_inset
+
+ falls between 
+\begin_inset Formula $A$
+\end_inset
+
+ and 
+\begin_inset Formula $\overline{A}$
+\end_inset
+
+.
+ Practically, this means:
+\end_layout
+
+\begin_layout Enumerate
+For each 
+\begin_inset Formula $\theta$
+\end_inset
+
+.
+ create 
+\begin_inset Formula $r_{\phi}$
+\end_inset
+
+ mesh, the locations on the phase mask:
+\begin_inset Formula 
+\[
+r_{\phi}=\vec{r}+L\left[\sin\theta_{x}\hat{x}+\sin\theta_{y}\hat{y}\right]
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+Perform thus: create a binary matrix of:
+\begin_inset Formula 
+\[
+\mathcal{I}\left\{ \vec{r}+L\cdot\vec{\phi}\left(r_{\phi}\right)\in A\right\} 
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+Define step 
+\begin_inset Formula $\delta\phi$
+\end_inset
+
+ and apply to mask.
+ Then create:
+\begin_inset Formula 
+\[
+\Delta\mathcal{I}\left(r,\theta\right)=\mathcal{I}\left\{ \vec{r}+L\cdot\vec{\phi}\left(r_{\phi}\right)\in A\right\} -\mathcal{I}\left\{ \vec{r}+L\cdot\left[\vec{\phi}\left(r_{\phi}\right)+\delta\vec{\phi}\left(r_{\phi}\right)\right]\in A\right\} 
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+Calculate the loss function:
+\begin_inset Formula 
+\[
+\mathcal{L}=\Delta\mathcal{I}\left(r,\theta\right)\cdot LF_{og}\left(r,\theta\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+Now we have 2 matrices.
+ The loss 
+\begin_inset Formula $\mathcal{L}$
+\end_inset
+
+ and the location on the phase mask 
+\begin_inset Formula $r_{\phi}$
+\end_inset
+
+.
+ Thus, we can perform a similar algorithm to the forward warping, to interpolate
+ the gradient, using the locations 
+\begin_inset Formula $r_{\phi}$
+\end_inset
+
+.
+ As in if 
+\begin_inset Formula $r_{\phi}$
+\end_inset
+
+ falls between 2 actual locations on the phase mask, we give some weight
+ to both of them (notice that we need to divide somewhere by 
+\begin_inset Formula $\left|\delta\phi\right|$
+\end_inset
+
+).
+\end_layout
+
+\begin_layout Standard
+This has a few advantages and a few disadvantages:
+\end_layout
+
+\begin_layout Paragraph*
+advantages
+\end_layout
+
+\begin_layout Enumerate
+This would be faster than before, and maybe easy.
+\end_layout
+
+\begin_layout Enumerate
+We don't need to perform interpolation except when finding 
+\begin_inset Formula $\phi\left(r_{\phi}\right)$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Paragraph*
+disadvantages
+\end_layout
+
+\begin_layout Enumerate
+This could leave empty spots in the phase mask
+\end_layout
+
+\begin_layout Enumerate
+This doesnt consider interpolation needed if we fall exactly on the edge
+ of 
+\begin_inset Formula $A$
+\end_inset
+
+.
+ This is important as the interesting part for the gradient is exactly the
+ edge.
+\end_layout
+
+\begin_layout Standard
+In order to consider the edge, we will of course has to do something a bit
+ different.
+ We could instead of the binary 
+\begin_inset Formula $\mathcal{I}\left\{ \vec{r}+L\cdot\vec{\phi}\left(r_{\phi}\right)\in A\right\} $
+\end_inset
+
+ we could give it a weight, considering the neighbors in 
+\begin_inset Formula $A$
+\end_inset
+
+.
+ This is quite easy, and doesnt require interpolation (it is of course a
+ sort of interpolation).
+ Thus the algorithm is thus:
+\end_layout
+
+\begin_layout Enumerate
+For each 
+\begin_inset Formula $\theta$
+\end_inset
+
+.
+ create 
+\begin_inset Formula $r_{\phi}$
+\end_inset
+
+ mesh, the locations on the phase mask:
+\begin_inset Formula 
+\[
+r_{\phi}=\vec{r}+L\left[\sin\theta_{x}\hat{x}+\sin\theta_{y}\hat{y}\right]
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+Perform thus: create a matrix of the mask 
+\begin_inset Formula $A$
+\end_inset
+
+.
+ Then perform interpolation using the location on the mask 
+\begin_inset Formula $\vec{r}+L\cdot\vec{\phi}\left(r_{\phi}\right)$
+\end_inset
+
+ to get:
+\begin_inset Formula 
+\[
+\mathcal{\approx I}\left\{ \vec{r}+L\cdot\vec{\phi}\left(r_{\phi}\right)\in A\right\} 
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+Define step 
+\begin_inset Formula $\delta\phi$
+\end_inset
+
+ and apply to mask.
+ Then create:
+\begin_inset Formula 
+\[
+\Delta\mathcal{I}\left(r,\theta\right)=\mathcal{I}\left\{ \vec{r}+L\cdot\vec{\phi}\left(r_{\phi}\right)\in A\right\} -\mathcal{I}\left\{ \vec{r}+L\cdot\left[\vec{\phi}\left(r_{\phi}\right)+\delta\vec{\phi}\left(r_{\phi}\right)\right]\in A\right\} 
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+Calculate the loss function:
+\begin_inset Formula 
+\[
+\mathcal{L}=\Delta\mathcal{I}\left(r,\theta\right)\cdot LF_{og}\left(r,\theta\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+Now we have 2 matrices.
+ The loss 
+\begin_inset Formula $\mathcal{L}$
+\end_inset
+
+ and the location on the phase mask 
+\begin_inset Formula $r_{\phi}$
+\end_inset
+
+.
+ Thus, we can perform a similar algorithm to the forward warping, to interpolate
+ the gradient, using the locations 
+\begin_inset Formula $r_{\phi}$
+\end_inset
+
+.
+ As in if 
+\begin_inset Formula $r_{\phi}$
+\end_inset
+
+ falls between 2 actual locations on the phase mask, we give some weight
+ to both of them (notice that we need to divide somewhere by 
+\begin_inset Formula $\left|\delta\phi\right|$
+\end_inset
+
+).
+\end_layout
+
+\begin_layout Standard
+This has a few advantages and a few disadvantages:
+\end_layout
+
+\begin_layout Paragraph*
+advantages7
+\end_layout
+
+\begin_layout Enumerate
+Considers edges
+\end_layout
+
+\begin_layout Paragraph*
+disadvantages
+\end_layout
+
+\begin_layout Enumerate
+This could still leave empty spots in the phase mask
+\end_layout
+
 \end_body
 \end_document

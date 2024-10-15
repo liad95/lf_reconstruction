@@ -1,0 +1,1940 @@
+#LyX 2.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 544
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass article
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\use_microtype false
+\use_dash_ligatures true
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\use_minted 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\is_math_indent 0
+\math_numbering_side default
+\quotes_style english
+\dynamic_quotes 0
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Part*
+Displacment with angle change
+\end_layout
+
+\begin_layout Standard
+Our detector is at 
+\begin_inset Formula $z=L$
+\end_inset
+
+, and our phase mask is at 
+\begin_inset Formula $z=0$
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Standard
+Each ray has a directional vector of the light 
+\begin_inset Formula $\hat{k}$
+\end_inset
+
+.
+ The point 
+\begin_inset Formula $\vec{P}$
+\end_inset
+
+ of intersection of the light ray and the detecor is at 
+\begin_inset Formula $\vec{P}_{z}=\left(\vec{0}+l\hat{k}\right)_{z}=L$
+\end_inset
+
+.
+ Therefore:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+l=\frac{L}{k_{z}}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+And therefore:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\vec{P}=\frac{L}{k_{z}}\hat{k}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We notice that the angle at each point of each ray could be found using:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\frac{k_{z}}{k_{x}}=\tan\theta_{x}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\frac{k_{z}}{k_{y}}=\tan\theta_{y}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Now, we will find the displacement as a function of the angle difference:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+P_{x}'-P_{x}=L\left(\frac{k'_{x}}{k_{z}'}-\frac{k_{x}}{k_{z}}\right)=L\left(\frac{1}{\tan\theta'_{x}}-\frac{1}{\tan\theta_{x}}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Therefore:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\Delta P_{x}=L\left(\frac{1}{\tan\left(\theta_{x}+\Delta\theta_{x}\right)}-\frac{1}{\tan\left(\theta_{x}\right)}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\Delta P_{y}=L\left(\frac{1}{\tan\left(\theta_{y}+\Delta\theta_{y}\right)}-\frac{1}{\tan\left(\theta_{y}\right)}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+For small changes we can approximate:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\Delta P_{x}=-\frac{L}{\cos^{2}\left(\theta_{x}\right)}\cdot\Delta\theta_{x}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\Delta P_{y}=-\frac{L}{\cos^{2}\left(\theta_{y}\right)}\cdot\Delta\theta_{x}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Part*
+No mask Reconstruction
+\end_layout
+
+\begin_layout Standard
+Using the equations above, we can reconstruct with no mask at all.
+ Each point in the LF that we reconstruct, we scan 
+\begin_inset Formula $\Delta\vec{\theta}$
+\end_inset
+
+ and gather light scanning over relevant 
+\begin_inset Formula $\Delta\vec{P}$
+\end_inset
+
+.
+ This is independent of the mask.
+\end_layout
+
+\begin_layout Part*
+angle change with phase
+\end_layout
+
+\begin_layout Subsection*
+Paraxial approximation
+\end_layout
+
+\begin_layout Standard
+In the paraxial approximation, we will get the direction of a ray is:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+E\propto e^{jk\cdot r}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Multiplying by phase
+\begin_inset Formula $p=e^{j\phi\left(r\right)}$
+\end_inset
+
+ we get:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+E\propto e^{jk\cdot r}p=e^{jk\phi\left(r\right)}e^{jk\cdot r}=e^{j\left(k\cdot r+\phi\left(r\right)\right)}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Assuming that the phase is slowly changing in 
+\begin_inset Formula $r$
+\end_inset
+
+ (high derivatives are negligable), or if we are looking at a small section(high
+ powers of 
+\begin_inset Formula $r$
+\end_inset
+
+ are negligable) (my guess is that both of these are right.
+ We assume the the phase changes slowly, and we will look for each ray at
+ a certain small region ) , we can approximate using taylor:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\phi\left(r\right)\approx\phi\left(0\right)+\vec{\nabla}\phi\cdot r
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Therefore:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+E\propto e^{j\left(k\cdot r+\phi\left(0\right)+\vec{\nabla}\phi\cdot r\right)}=e^{j\left(\vec{k}+\vec{\nabla}\phi\right)\cdot r}e^{j\phi\left(0\right)}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We might be able to ignore 
+\begin_inset Formula $\phi\left(0\right)$
+\end_inset
+
+ as it is a global phase.
+ However, it isnt really, as it only locally a global phase.
+ I think these would be appropriate if we don't care about the phase (do
+ we? speckle is dependent on the phase).
+ Therefore
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+k_{new}=\vec{k}+\vec{\nabla}\phi
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Now:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\theta_{x}=\arctan\left(\frac{k_{z}}{k_{x}}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\theta_{y}=\arctan\left(\frac{k_{z}}{k_{y}}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+k'_{z}=\sqrt{1-\left(k'_{x}\right)^{2}-\left(k'_{y}\right)^{2}}=\sqrt{1-\left(k_{x}+\frac{d}{dx}\phi\right)^{2}-\left(k_{y}+\frac{d}{dy}\phi\right)^{2}}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+=\sqrt{1-k_{x}^{2}-2k_{x}\frac{d}{dx}\phi-\frac{d}{dx}^{2}\phi-k_{y}^{2}-2k_{y}\frac{d}{dy}\phi-\frac{d}{dy}^{2}\phi}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+=\sqrt{1-k_{x}^{2}-k_{y}^{2}-2\vec{k}\cdot\vec{\nabla}\phi-\nabla^{2}\phi}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\approx1-2k'_{x}-2k'_{y}=1-2k{}_{x}-2k{}_{y}-2\vec{k}\cdot\vec{\nabla}\phi=k_{z}-2\vec{k}\cdot\vec{\nabla}\phi
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Therefore:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\Delta P_{x}=L\left(\frac{k_{x}+\frac{d}{dx}\phi}{k_{z}-2\vec{k}\cdot\vec{\nabla}\phi}-\frac{k_{x}}{k_{z}}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\Delta P_{y}=L\left(\frac{k_{y}+\frac{d}{dy}\phi}{k_{z}-2\vec{k}\cdot\vec{\nabla}\phi}-\frac{k_{y}}{k_{z}}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+And overall:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\Delta\vec{P}=L\left(\frac{k_{x}+\vec{\nabla}\phi}{k_{z}-2\vec{k}\cdot\vec{\nabla}\phi}-\frac{k_{x}}{k_{z}}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+General expression
+\end_layout
+
+\begin_layout Standard
+Assuming we have a ray coming at angle 
+\begin_inset Formula $\theta_{1}$
+\end_inset
+
+ to a prism with a slope at an angle both in x and y, so that there is a
+ refraction in both x and y.
+\end_layout
+
+\begin_layout Standard
+In order to make sense of everything we will write snell's law like so:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\vec{k}-\left(\vec{k}\cdot\hat{n}\right)\hat{n}=\vec{k'}-\left(\vec{k'}\cdot\hat{n}\right)\hat{n}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Where 
+\begin_inset Formula $\hat{n}$
+\end_inset
+
+ is the normal vector.
+ This is true as:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\vec{k}-\left(\vec{k}\cdot\hat{n}\right)\hat{n}=\vec{k}-\left(k_{\perp}\right)\hat{n}=\vec{k}-\vec{k_{\perp}}=\vec{k}_{\parallel}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Now, 
+\begin_inset Formula $\hat{n_{1}}=\hat{z}$
+\end_inset
+
+ and 
+\begin_inset Formula $\hat{n_{2}}$
+\end_inset
+
+ is angled with 
+\begin_inset Formula $\theta_{x},\theta_{y}$
+\end_inset
+
+.
+ Therefore, we have 2 instances of snells law(ray in and ray out):
+\end_layout
+
+\begin_layout Standard
+The first (I)
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+k_{x}=k_{x}'
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+k_{y}=k_{y}'
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+And the second (II):
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\vec{k'}-\left(\vec{k'}\cdot\hat{n}\right)\hat{n}=\left(k'_{x},k'_{y},k'_{z}\right)-\left(k'_{x}n_{x}+k'_{y}n_{y}+k'_{z}n_{z}\right)\left(n_{x},n_{y},n_{z}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+=\left(k'_{x}-k'_{x}n_{x}^{2},k'_{y}-k'_{y}n_{y}^{2},k'_{z}-k'_{z}n_{z}^{2}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left(k'_{x}\left(1-n_{x}^{2}\right),k'_{y}\left(1-n_{y}^{2}\right),k'_{z}\left(1-n_{z}^{2}\right)\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We can find 
+\begin_inset Formula $n_{x,}n_{y},n_{z}$
+\end_inset
+
+ using the angles 
+\begin_inset Formula $\theta_{x},\theta_{y}$
+\end_inset
+
+:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+n_{x}=n_{z}\tan\left(\theta_{x}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+n_{y}=n_{z}\tan\left(\theta_{y}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We will find 
+\begin_inset Formula $n_{z}$
+\end_inset
+
+ using normalization:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left|n\right|^{2}=1\Rightarrow n_{z}^{2}\left(1+\tan^{2}\left(\theta_{x}\right)+\tan^{2}\left(\theta_{y}\right)\right)=1
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\Rightarrow n_{z}^{2}=\frac{1}{1+\tan^{2}\left(\theta_{x}\right)+\tan^{2}\left(\theta_{y}\right)}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Therefore:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\vec{k'}-\left(\vec{k'}\cdot\hat{n}\right)\hat{n}=
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula $\left(k'_{x}\left(1-\frac{\tan^{2}\left(\theta_{x}\right)}{1+\tan^{2}\left(\theta_{x}\right)+\tan^{2}\left(\theta_{y}\right)}\right),k'_{y}\left(1-\frac{\tan^{2}\left(\theta_{y}\right)}{1+\tan^{2}\left(\theta_{x}\right)+\tan^{2}\left(\theta_{y}\right)}\right),k'_{z}\left(1-\frac{1}{1+\tan^{2}\left(\theta_{x}\right)+\tan^{2}\left(\theta_{y}\right)}\right)\right)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+=\frac{\left(k'_{x}\left(1+\tan^{2}\left(\theta_{y}\right)\right),k'_{y}\left(1+\tan^{2}\left(\theta_{x}\right)\right),k'_{z}\left(\tan^{2}\left(\theta_{x}\right)+\tan^{2}\left(\theta_{y}\right)\right)\right)}{1+\tan^{2}\left(\theta_{x}\right)+\tan^{2}\left(\theta_{y}\right)}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We can see that for 
+\begin_inset Formula $\theta_{x}=\theta_{y}=0$
+\end_inset
+
+ we get 
+\begin_inset Formula $\left(k_{x}',k_{y}',0\right)$
+\end_inset
+
+ as expected.
+\end_layout
+
+\begin_layout Standard
+We will complete the second snell's law instance:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\frac{\left(k'_{x}\left(1+\tan^{2}\left(\theta_{y}\right)\right),k'_{y}\left(1+\tan^{2}\left(\theta_{x}\right)\right),k'_{z}\left(\tan^{2}\left(\theta_{x}\right)+\tan^{2}\left(\theta_{y}\right)\right)\right)}{1+\tan^{2}\left(\theta_{x}\right)+\tan^{2}\left(\theta_{y}\right)}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+=\frac{\left(k''_{x}\left(1+\tan^{2}\left(\theta_{y}\right)\right),k''_{y}\left(1+\tan^{2}\left(\theta_{x}\right)\right),k''_{z}\left(\tan^{2}\left(\theta_{x}\right)+\tan^{2}\left(\theta_{y}\right)\right)\right)}{1+\tan^{2}\left(\theta_{x}\right)+\tan^{2}\left(\theta_{y}\right)}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Part*
+Test
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left(k'_{x},k'_{y},k'_{z}\right)-\left(k'_{x}n_{x}+k'_{y}n_{y}+k'_{z}n_{z}\right)\left(n_{x},n_{y},n_{z}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula $=\left(k'_{x}-\left(k'_{x}n_{x}+k'_{y}n_{y}+k'_{z}n_{z}\right)n_{x},k'_{y}-\left(k'_{x}n_{x}+k'_{y}n_{y}+k'_{z}n_{z}\right)n_{y},k'_{z}-\left(k'_{x}n_{x}+k'_{y}n_{y}+k'_{z}n_{z}\right)n_{z}\right)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Therefore the second instance of snell's law (II):
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+k'_{x}-\left(k'_{x}n_{x}+k'_{y}n_{y}+k'_{z}n_{z}\right)n_{x}=k''_{x}-\left(k''_{x}n_{x}+k''_{y}n_{y}+k''_{z}n_{z}\right)n_{x}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+k'_{y}-\left(k'_{x}n_{x}+k'_{y}n_{y}+k'_{z}n_{z}\right)n_{y}=k''_{y}-\left(k''_{x}n_{x}+k''_{y}n_{y}+k''_{z}n_{z}\right)n_{y}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+k'_{z}-\left(k'_{x}n_{x}+k'_{y}n_{y}+k'_{z}n_{z}\right)n_{z}=k''_{z}-\left(k''_{x}n_{x}+k''_{y}n_{y}+k''_{z}n_{z}\right)n_{z}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left(k'_{x}n_{x}+k'_{y}n_{y}+k'_{z}n_{z}\right)n_{x}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Therefore:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left(\beta-\alpha\right)n_{x}=\frac{k''_{x}-k'_{x}}{}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Path to solution, transform to a different coordinate system, so that we
+ only have 2 vectors.
+ Try solving for this, in 2d.
+ Or think in terms of angles as in snell's law in 3d.
+ 
+\end_layout
+
+\begin_layout Part*
+Transforming to k-space:
+\end_layout
+
+\begin_layout Standard
+We have seen:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\theta_{i}=\arctan\left(\frac{k_{z}}{k_{i}}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\frac{k_{z}}{k_{i}}=\tan\theta_{i}\Rightarrow k_{i}=\frac{k_{z}}{\tan\theta_{i}}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Using normalization:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+1=\left|k\right|^{2}=k_{z}^{2}\left(1+\frac{1}{\tan^{2}\theta_{x}}+\frac{1}{\tan^{2}\theta_{y}}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Therefore:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+k_{z}=\frac{1}{\sqrt{1+\frac{1}{\tan^{2}\theta_{x}}+\frac{1}{\tan^{2}\theta_{y}}}}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Therefore:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+k_{x}=\frac{k_{z}}{\tan\theta_{x}}=\frac{1}{\sqrt{1+\tan^{2}\theta_{x}+\left(\frac{\tan\theta_{x}}{\tan\theta_{y}}\right)^{2}}}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Part*
+LGFT
+\end_layout
+
+\begin_layout Section*
+The DFT way
+\end_layout
+
+\begin_layout Standard
+We want to find 
+\begin_inset Formula $x\left[k_{x},k_{y}\right]$
+\end_inset
+
+.
+ First we analyze the case for DFT (
+\begin_inset Formula $\sigma=\infty$
+\end_inset
+
+), in 1-D.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+x\left[k_{x}\right]=\sum_{n=0}^{N-1}x\left[n\right]e^{-j\frac{2\pi}{N}k_{x}n}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We know that:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+x^{DFT}\left[k_{x}\right]\propto x^{DTFT}\left[k_{x}\cdot L\right]=x^{DTFT}\left[\frac{2\pi}{\lambda}\sin\theta_{x}\cdot L\right]=x^{DTFT}\left[2\pi\sin\theta_{x}\cdot\frac{L}{\lambda}\right]
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Where 
+\begin_inset Formula $L$
+\end_inset
+
+ is the sampling distance.
+ 
+\end_layout
+
+\begin_layout Standard
+We want to uphold nyquist:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left|k_{x}\right|<\frac{\pi}{L}\Rightarrow\left|\frac{2\pi}{\lambda}\sin\theta_{x}\right|<\frac{\pi}{L}\Rightarrow\left|\sin\theta_{x}\right|<\frac{\lambda}{2L}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Of course 
+\begin_inset Formula $\left|\sin\theta_{x}\right|<1$
+\end_inset
+
+ therefore:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+1<\frac{\lambda}{2L}\Rightarrow L<\frac{\lambda}{2}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Which is pretty understandable.
+\end_layout
+
+\begin_layout Standard
+We want our values of 
+\begin_inset Formula $\sin\theta_{x}$
+\end_inset
+
+ to be between 
+\begin_inset Formula $\left[-\frac{1}{2},\frac{1}{2}\right]$
+\end_inset
+
+ with 7 values.
+ In order to get this, we can run the algorithm for 
+\begin_inset Formula $\left[-1,1\right]$
+\end_inset
+
+ 14 values of 
+\begin_inset Formula $k_{x}$
+\end_inset
+
+, without calculating the values we don't care about.
+ Thus, we need 
+\begin_inset Formula $N=14$
+\end_inset
+
+, or we could use zero padding with 
+\begin_inset Formula $N=7$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+After this, we can just apply the gaussian.
+ Notice that the gaussian is not dependent on the frequency.
+\end_layout
+
+\begin_layout Standard
+Of course what we are doing can be described as a DFT with a wavlet:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+W_{LGFT}=W_{DFT}e^{-\frac{x^{2}+y^{2}}{2\sigma^{2}}}=W_{DFT}\cdot g\left(x,y\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Where we defined 
+\begin_inset Formula $g=e^{-\frac{x^{2}+y^{2}}{2\sigma^{2}}}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+It is easy to see that:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+DGFT\left\{ x\left[n\right]\right\} =DFT\left\{ x\left[n\right]\cdot g\left[n\right]\right\} 
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Therefore:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+DGFT\left\{ x\left[n\right]\right\} =DFT\left\{ x\left[n\right]\cdot g\left[n\right]\right\} =x^{DFT}\left[k\right]\otimes g^{DFT}\left[k\right]
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+The Non-DFT way
+\end_layout
+
+\begin_layout Standard
+Intuitively, we would find the inner product between the mask and 
+\begin_inset Formula $u\left(k\right)$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+We need 49 
+\begin_inset Formula $u$
+\end_inset
+
+'s for the 49 angles.
+ let us look in 1-D.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+u_{k}\left(x\right)=e^{jkx}e^{-\frac{x^{2}}{2\sigma^{2}}}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We need to replace 
+\begin_inset Formula $x\to n$
+\end_inset
+
+.
+ 
+\begin_inset Formula $x=Ln$
+\end_inset
+
+ Therefore:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+u_{k}\left[n\right]=e^{jkLn}e^{-\frac{\left(Ln\right){}^{2}}{2\sigma^{2}}}=e^{jkLn}e^{-\frac{n^{2}}{2\left(\frac{\sigma}{L}\right)^{2}}}=e^{j\frac{2\pi}{\lambda}\sin\theta Ln}e^{-\frac{n^{2}}{2\left(\frac{\sigma}{L}\right)^{2}}}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Therefore:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+x\left[n\right]\cdot u_{k}\left[n\right]=\sum_{n}x\left[n\right]e^{-jkLn}e^{-\frac{n^{2}}{2\left(\frac{\sigma}{L}\right)^{2}}}=\sum_{n}x\left[n\right]e^{j\frac{2\pi}{\lambda}\sin\theta Ln}e^{-\frac{n^{2}}{2\left(\frac{\sigma}{L}\right)^{2}}}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Notice that in the regular case:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+x^{d}\left[k\right]=\sum_{n}x\left[n\right]e^{-j\frac{2\pi}{N}kn}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+If we want 
+\begin_inset Formula $k_{dft}=k\Rightarrow\frac{2\pi}{N}k_{dft}=\frac{2\pi}{\lambda}\sin\theta L\Rightarrow k_{dft}=\frac{N}{\lambda}\sin\theta L=\left(\frac{LN}{\lambda}\right)\sin\theta$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Now, as said, we want to sample for 
+\begin_inset Formula $\sin\theta=-\frac{1}{2}+\frac{1}{6}n$
+\end_inset
+
+ for 
+\begin_inset Formula $0\le n\le6$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Therefore:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+k_{dft}=\left(\frac{LN}{\lambda}\right)\left(-\frac{1}{2}+\frac{1}{6}n\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula $k_{dft}$
+\end_inset
+
+ is of course whole.
+ Therefore:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left(\frac{LN}{\lambda}\right)\left(-\frac{1}{2}+\frac{1}{6}n\right)\in\mathbb{Z}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\Rightarrow-\frac{1}{2}\frac{LN}{\lambda}\in\mathbb{Z}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\Rightarrow\frac{1}{6}\frac{LN}{\lambda}n\in\mathbb{Z}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The second one is more severe.
+ It tells us:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\frac{1}{6}\frac{LN}{\lambda}=m\Rightarrow N=\frac{6m\lambda}{L}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Taking 
+\begin_inset Formula $m=1$
+\end_inset
+
+:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+N=\frac{6\lambda}{L}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+If 
+\begin_inset Formula $\lambda=p\cdot L$
+\end_inset
+
+ we get:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+N=6\cdot\left(\frac{\lambda}{L}\right)=6\cdot p
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We already showed that 
+\begin_inset Formula $L\le\frac{\lambda}{2}$
+\end_inset
+
+ in order to not get aliasing.
+ Therefore:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+p=\frac{\lambda}{L}\ge2
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+N\ge12
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Therefore, if we use DFT with 
+\begin_inset Formula $N=6\cdot\left(\frac{\lambda}{L}\right)$
+\end_inset
+
+ and choose 
+\begin_inset Formula $k=\frac{2\pi}{\lambda}\sin\theta L$
+\end_inset
+
+ we should approximately get the result of 
+\begin_inset Formula $x\left[n\right]\cdot u_{k}\left[n\right]$
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Standard
+This is not true, as we didn't take the gaussian into account
+\end_layout
+
+\begin_layout Section*
+The Naive way
+\end_layout
+
+\begin_layout Standard
+This would not work, as we didn't take the gaussian into account
+\end_layout
+
+\begin_layout Standard
+We apply a DFT.
+ Thus we get the frequencies:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+x^{DFT}\left[k\right]=x^{DTFT}\left[\frac{2\pi}{N}k\right]=x^{F}\left[\frac{2\pi}{N}k\cdot L\right]
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We want to find the frequency with respect to 
+\begin_inset Formula $\theta$
+\end_inset
+
+, as in:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+k_{x}=\frac{2\pi}{\lambda}\sin\theta
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Therefore:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\frac{2\pi}{N}k\cdot L=\frac{2\pi}{\lambda}\sin\theta\Rightarrow k=\frac{L}{\lambda N}\sin\theta
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Therefore we will choose 
+\begin_inset Formula $k=\left\lfloor \frac{L}{\lambda}N\sin\theta\right\rfloor $
+\end_inset
+
+.
+ We have seen that 
+\begin_inset Formula $L\le\frac{\lambda}{2}$
+\end_inset
+
+ Therefore 
+\begin_inset Formula $\frac{L}{\lambda}\le2$
+\end_inset
+
+.
+ Our frequency resolution is:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\Delta k=\frac{L}{\lambda}N\Delta\sin\theta
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Where 
+\begin_inset Formula $\Delta\sin\theta=\frac{1}{6}$
+\end_inset
+
+.
+ Therefore:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\Delta k=\frac{L}{\lambda}\frac{N}{6}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We enforce 
+\begin_inset Formula $\Delta k\ge1$
+\end_inset
+
+:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\frac{L}{\lambda}\frac{N}{6}\ge1\Rightarrow N\ge6\cdot\frac{\lambda}{L}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\sin\theta=\frac{\lambda}{L}\frac{k}{N}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\Rightarrow\frac{\lambda}{L}\frac{1}{N}=\frac{1}{6}\Rightarrow N\frac{\lambda}{L}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+Classic case:
+\end_layout
+
+\begin_layout Standard
+When applying a DFT we are sampling in the following frequencies:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+k=\frac{1}{L}\frac{2\pi}{N}\cdot m
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Therefore:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\frac{2\pi}{\lambda}\sin\theta=\frac{1}{L}\frac{2\pi}{N}\cdot m\Rightarrow\sin\theta=\frac{\lambda}{L}\cdot\frac{m}{N}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+we remember the range of values for 
+\begin_inset Formula $m$
+\end_inset
+
+:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+0\le m\le N-1\Rightarrow-\left\lfloor \frac{N}{2}\right\rfloor \le m\le N-1-\left\lfloor \frac{N}{2}\right\rfloor 
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Therefore:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+-\frac{\lambda}{L}\frac{\left\lfloor \frac{N}{2}\right\rfloor }{N}\le\sin\theta\le\frac{\lambda}{L}\frac{\left(N-1-\left\lfloor \frac{N}{2}\right\rfloor \right)}{N}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Where 
+\begin_inset Formula $\Delta\sin\theta=\frac{\lambda}{L}\frac{1}{N}$
+\end_inset
+
+.
+ We want 
+\begin_inset Formula $\Delta\sin\theta=\frac{1}{n\cdot6}$
+\end_inset
+
+.
+ Therefore
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+-\frac{1}{n\cdot6}\left\lfloor \frac{N}{2}\right\rfloor \le\sin\theta\le\frac{1}{n\cdot6}\left(N-1-\left\lfloor \frac{N}{2}\right\rfloor \right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We want 
+\begin_inset Formula $-\frac{1}{n\cdot6}\left\lfloor \frac{N}{2}\right\rfloor \le-\frac{1}{2}$
+\end_inset
+
+ 
+\begin_inset Formula $\Rightarrow n\cdot3\le\left\lfloor \frac{N}{2}\right\rfloor $
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+We got 2 conditions:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\frac{\lambda}{L}\frac{1}{N}=\frac{1}{n\cdot6}\Rightarrow N=6n\cdot\frac{\lambda}{L}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+n\cdot3\le\left\lfloor \frac{N}{2}\right\rfloor \Rightarrow n\cdot6<N
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+For 
+\begin_inset Formula $n=1$
+\end_inset
+
+:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+N=6\frac{\lambda}{L}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+N>6
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+Mathematical developement:
+\end_layout
+
+\begin_layout Standard
+I have 
+\begin_inset Formula $x\left[n\right]=e^{jk'Ln}$
+\end_inset
+
+.
+ I have 
+\begin_inset Formula $u_{k}\left[n\right]=e^{jkLn}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Therefore:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+x\left[n\right]\cdot u_{k}\left[n\right]=\sum_{n=0}^{N-1}e^{jk'Ln}e^{-jkLn}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+=\sum_{n=0}^{N-1}e^{j\left(k'-k\right)Ln}=\sum_{n=0}^{N-1}\left(e^{j\left(k'-k\right)L}\right)^{n}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+=\frac{e^{j\left(k'-k\right)LN}-1}{e^{j\left(k'-k\right)L}-1}=\frac{e^{\frac{j\left(k'-k\right)LN}{2}}}{e^{\frac{j\left(k'-k\right)L}{2}}}\frac{e^{\frac{j\left(k'-k\right)LN}{2}}-e^{-\frac{j\left(k'-k\right)LN}{2}}}{e^{\frac{j\left(k'-k\right)L}{2}}-e^{-\frac{j\left(k'-k\right)L}{2}}}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+=e^{\frac{j\left(k'-k\right)L\left(N-1\right)}{2}}\frac{\sin\left(\frac{\left(k'-k\right)LN}{2}\right)}{\sin\left(\frac{\left(k'-k\right)L}{2}\right)}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This is the Dirichlet kernel.
+ Looking at:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left|x\left[n\right]\cdot u_{k}\left[n\right]\right|=\frac{\sin\left(\frac{\left(k'-k\right)LN}{2}\right)}{\sin\left(\frac{\left(k'-k\right)L}{2}\right)}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+k=\frac{2\pi}{\lambda}\cdot\sin\theta
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+arr=0,a,2a,...,\left(N-1\right)a=k_{max}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+arr\to-\frac{k_{max}}{2},-\frac{k_{max}}{2}+a,...,
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\frac{2\pi}{N}k=kL=\frac{2\pi}{\lambda}\sin\theta L
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\frac{k}{N}=\frac{L}{\lambda}\sin\theta\Rightarrow\sin\theta=\frac{\lambda}{L}\frac{k}{N}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\frac{\lambda}{L}\frac{1}{N}=\frac{1}{n\cdot6}\Rightarrow N=n\cdot6\cdot\frac{\lambda}{L}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\sin\theta_{max}=\frac{1}{2}\frac{\lambda}{L}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We demand 
+\begin_inset Formula $\sin\theta_{max}>\frac{1}{2}\Rightarrow\frac{\lambda}{L}>1\Rightarrow\lambda>L$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This must be anyway
+\end_layout
+
+\begin_layout Part*
+Displacement with phase
+\end_layout
+
+\begin_layout Standard
+Assuming we have 
+\begin_inset Formula $k\to k'=k+\delta k$
+\end_inset
+
+.
+ We have seen that:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\Delta P_{x}=L\left(\frac{k'_{x}}{k_{z}'}-\frac{k_{x}}{k_{z}}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+And assuming that 
+\begin_inset Formula $k_{z}'=k_{z}$
+\end_inset
+
+(the paraxial/small angles assumtion).
+ Therefore:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\Delta P_{x}=L\left(\frac{k_{x}+\delta k_{x}-k_{x}}{k_{z}}\right)=L\frac{\delta k_{x}}{k_{z}}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\Delta P_{y}=L\frac{\delta k_{y}}{k_{z}}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+What do we actually have to do?
+\end_layout
+
+\begin_layout Standard
+So, analyzing the mask we found the function:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\delta\vec{k}\left(r\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+where 
+\begin_inset Formula $r$
+\end_inset
+
+ is the location on the mask plane.
+\end_layout
+
+\begin_layout Subsection*
+Question:
+\end_layout
+
+\begin_layout Standard
+1.
+ Can we assume paraxial/small angles assumption?
+\end_layout
+
+\begin_layout Standard
+2.
+ Is there justification to all of this work? We are assuming that the light
+ rays don't change their locations too much.
+ Is this not the opposite of the diffusion assumption in tissue?
+\end_layout
+
+\begin_layout Standard
+3.
+ We are not taking into account a gain of phase, only the change of it,
+ which affects the angle.
+ However, the gain of phase would change the speckle image.
+\end_layout
+
+\begin_layout Standard
+4.
+ Do we even care about the phase of the light.
+ Need a reminder of the motivation of this project.
+ If we care, what is the coherent length of tissue?
+\end_layout
+
+\end_body
+\end_document

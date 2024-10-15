@@ -12,7 +12,6 @@ from angle_finder import angle_finder
 from scipy.signal import convolve2d
 
 
-
 class gradient_angle_finder(angle_finder):
 
     def __init__(self, sampling_dist, N, wavelength, sigma):
@@ -20,15 +19,15 @@ class gradient_angle_finder(angle_finder):
         self.N = N
         self.wavelength = wavelength
         self.sigma = sigma
+
     def get_delta_sin(self, mask, filter=None):
 
         if filter is None:
             self.filter = self._create_filter()
         else:
             self.filter = filter
-        self.filter = self.filter/np.sum(self.filter)
+        self.filter = self.filter / np.sum(self.filter)
         display(self.filter, "Filter")
-
 
         delta_sin_x, delta_sin_y = self._get_sin_from_gradient(mask)
         display(np.unwrap(np.unwrap(np.angle(mask), axis=0), axis=1), "mask phase")
@@ -68,7 +67,6 @@ class gradient_angle_finder(angle_finder):
 
         return angle_grad_x, angle_grad_y
 
-
     def _get_sin_from_gradient(self, mask):
         phase_map = np.unwrap(np.unwrap(np.angle(mask), axis=0), axis=1)  # fix 2pi jump
         angle_grad_x = np.gradient(phase_map, axis=1) / (
@@ -80,5 +78,3 @@ class gradient_angle_finder(angle_finder):
         angle_grad_y = convolve2d(angle_grad_y, self.filter, mode="same")"""
 
         return angle_grad_x, angle_grad_y
-
-

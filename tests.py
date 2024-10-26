@@ -70,8 +70,8 @@ def backward_reconstruct_based_on_given_phase_mask(suffix, debug=False):
 def forward_reconstruct_with_walker(suffix, debug):
     # load and display lf and mask
     lf = load_lf(suffix)
-    #display_lf_summed(lf, 'LF')
-    #plt.show()
+    display_lf_summed(lf, 'LF')
+    plt.show()
 
     # find the phase mask
     finder = phase_mask_finder_walker(10, sampling_dist_mask_plane, sampling_dist_lf_plane, wavelength, sigma,
@@ -79,9 +79,9 @@ def forward_reconstruct_with_walker(suffix, debug):
     phase_x, phase_y = finder.find_phase_mask_gpu(lf)
     phase_x = cp.asnumpy(phase_x)
     phase_y = cp.asnumpy(phase_y)
-    #display(phase_x, "angle x")
-    #display(phase_y, "angle y")
-    #plt.show()
+    display(phase_x, "angle x")
+    display(phase_y, "angle y")
+    plt.show()
 
     # FW reconstruction using the phase mask
     angle_finder = gradient_angle_finder(sampling_dist_mask_plane, N, wavelength, sigma)

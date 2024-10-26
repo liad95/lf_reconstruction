@@ -559,8 +559,8 @@ class phase_mask_finder_walker(phase_mask_finder):
         score_y = {}
         # zero scores for the different deltas
         for delta in deltas:
-            score_x[delta] = torch.zeros(self.phase_mask_shape, device=device)
-            score_y[delta] = torch.zeros(self.phase_mask_shape, device=device)
+            score_x[float(delta)] = torch.zeros(self.phase_mask_shape, device=device)
+            score_y[float(delta)] = torch.zeros(self.phase_mask_shape, device=device)
         for i in range(self.lf_shape[2]):
             for j in range(self.lf_shape[2]):
                 # finding the locations on the phase mask
@@ -610,9 +610,9 @@ class phase_mask_finder_walker(phase_mask_finder):
                                                                    self.phase_mask_shape, weight_x.shape)
 
                     # update the deltas' score
-                    score_x[delta] = (transform_matrix @ weight_x.flatten()).reshape(
+                    score_x[float(delta)] = (transform_matrix @ weight_x.flatten()).reshape(
                         self.phase_mask_shape[0], self.phase_mask_shape[1])
-                    score_y[delta] = (transform_matrix @ weight_y.flatten()).reshape(
+                    score_y[float(delta)] = (transform_matrix @ weight_y.flatten()).reshape(
                         self.phase_mask_shape[0], self.phase_mask_shape[1])
 
         # Stack the arrays along a new axis to create a 3D array
@@ -664,6 +664,8 @@ class phase_mask_finder_walker(phase_mask_finder):
             score_y[delta] = torch.zeros(self.phase_mask_shape, device=device)
             self.dict.track_obj(score_x[delta], f"score_x[{delta}]")
             self.dict.track_obj(score_y[delta], f"score_y[{delta}]")"""
+            score_x[float(delta)] = torch.zeros(self.phase_mask_shape, device=device)
+            score_y[float(delta)] = torch.zeros(self.phase_mask_shape, device=device)
         for i in range(self.lf_shape[2]):
             for j in range(self.lf_shape[2]):
                 # finding the locations on the phase mask
@@ -687,12 +689,13 @@ class phase_mask_finder_walker(phase_mask_finder):
                                                                     angle_x1, angle_y1, delta, self.mask[:, :, i, j],
                                                                     lf[:, :, i, j], phase_mask_x,
                                                                     phase_mask_y, i, j)
-                    score_x[delta] = score_x_tmp.detach().cpu().numpy()
-                    score_y[delta] = score_y_tmp.detach().cpu().numpy()
+                    score_x[float(delta)] += score_x_tmp
+                    score_x[float(delta)] += score_y_tmp
 
+
+                torch.cuda.synchronize()  # Ensure all operations have finished
                 gc.collect()
                 torch.cuda.empty_cache()
-                torch.cuda.synchronize()  # Ensure all operations have finished
                 self.dict.print_active_tensors()
 
 

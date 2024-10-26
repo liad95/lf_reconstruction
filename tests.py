@@ -70,18 +70,18 @@ def backward_reconstruct_based_on_given_phase_mask(suffix, debug=False):
 def forward_reconstruct_with_walker(suffix, debug):
     # load and display lf and mask
     lf = load_lf(suffix)
-    display_lf_summed(lf, 'LF')
-    plt.show()
+    #display_lf_summed(lf, 'LF')
+    #plt.show()
 
     # find the phase mask
     finder = phase_mask_finder_walker(10, sampling_dist_mask_plane, sampling_dist_lf_plane, wavelength, sigma,
                                       (1601, 1601), lf.shape, max_sin, L, n_deltas, max_delta, 5, 2, 'nearest')
-    phase_x, phase_y = finder.find_phase_mask_gpu_debug(lf)
+    phase_x, phase_y = finder.find_phase_mask_gpu(lf)
     phase_x = cp.asnumpy(phase_x)
     phase_y = cp.asnumpy(phase_y)
-    display(phase_x, "angle x")
-    display(phase_y, "angle y")
-    plt.show()
+    #display(phase_x, "angle x")
+    #display(phase_y, "angle y")
+    #plt.show()
 
     # FW reconstruction using the phase mask
     angle_finder = gradient_angle_finder(sampling_dist_mask_plane, N, wavelength, sigma)
@@ -90,7 +90,7 @@ def forward_reconstruct_with_walker(suffix, debug):
                                              lf.shape)
     lf_reconstructed_gradient = reconstructor.reconstruct_lf_with_gradient(lf, phase_x, phase_y)
     display_lf_summed(lf_reconstructed_gradient, "Reconstructed")
-    plt.show()
+    #plt.show()
 
 
 def forward_reconstruct_with_gd(suffix, debug):

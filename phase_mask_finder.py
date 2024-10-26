@@ -60,8 +60,8 @@ class phase_mask_finder:
 
     def _create_mask(self):
         self.mask = np.exp(-(np.power(self.X, 2) + np.power(self.Y, 2)) / (2 * self.sigma))
-        display_lf_summed(self.mask, "Mask")
-        plt.show()
+        #display_lf_summed(self.mask, "Mask")
+        #plt.show()
 
     def _create_phase_mask(self):
         self.phase_maskx = np.zeros(self.phase_mask_shape)

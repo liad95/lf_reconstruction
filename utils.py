@@ -10,6 +10,8 @@ import cupy as cp
 import os
 from scipy.sparse import identity
 from globals import GRADIENTS_FOLDER, LF_FOLDER, MASK_FOLDER
+import torch
+import torch.nn.functional as interpolator
 
 
 # region old_analysis
@@ -237,7 +239,8 @@ def create_weighted_forward_for_phase_mask_old(interp_x, interp_y, sampling_dist
     weighted_matrix = (weight_matrix_gpu.dot(matrix_gpu)).reshape(height_phase, width_phase)
     return cp.asnumpy(weighted_matrix)
 
-#endregion
+
+# endregion
 
 # region interpolations
 def find_phase_mask_locations_gpu(X, Y, SinX, SinY, L):
@@ -250,7 +253,7 @@ def find_phase_mask_locations_gpu(X, Y, SinX, SinY, L):
     :param L: Distance between the LF plane and the phase mask
     :return: the locations in the phase mask
     """
-    SinZ = cp.sqrt(1 - cp.power(SinX, 2) - cp.power(SinY, 2))
+    SinZ = torch.sqrt(1 - torch.pow(SinX, 2) - torch.pow(SinY, 2))
     inter1_points_x = X + L * SinX / SinZ
     inter1_points_y = Y + L * SinY / SinZ
     return inter1_points_x, inter1_points_y
@@ -272,7 +275,7 @@ def find_phase_mask_locations(X, Y, SinX, SinY, L):
     return inter1_points_x, inter1_points_y
 
 
-def find_mask_angles_gpu(inter1_points_x, inter1_points_y, maskx, masky, sampling_dist_mask_plane):
+def find_mask_angles_gpu(inter1_points_x, inter1_points_y, maskx, masky, sampling_dist_mask_plane, method=''):
     """
     Interpolates the sines changes from the phase mask given the phase mask locations and angles, on GPU
     :param inter1_points_x: meshgrid of relevant phase mask X locations
@@ -284,19 +287,17 @@ def find_mask_angles_gpu(inter1_points_x, inter1_points_y, maskx, masky, samplin
     :return: the sines changes from the phase mask
     """
     delta_sin_size = maskx.shape
-    x_delta_sin = cp.linspace(0, delta_sin_size[1] * sampling_dist_mask_plane, delta_sin_size[1],
-                              endpoint=False) - \
-                  (delta_sin_size[1] - 1) * sampling_dist_mask_plane / 2
-    y_delta_sin = cp.linspace(0, delta_sin_size[0] * sampling_dist_mask_plane, delta_sin_size[0],
-                              endpoint=False) - \
-                  (delta_sin_size[0] - 1) * sampling_dist_mask_plane / 2
+    inter1_points_x = inter1_points_x * 2 / ((delta_sin_size[0] - 1) * sampling_dist_mask_plane)
+    inter1_points_y = inter1_points_y * 2 / ((delta_sin_size[0] - 1) * sampling_dist_mask_plane)
+    interp1_points = torch.stack((inter1_points_x, inter1_points_y), dim=2).unsqueeze(0)
+    maskx = maskx.unsqueeze(0).unsqueeze(0)
+    masky = masky.unsqueeze(0).unsqueeze(0)
 
-    inter1_points = cp.array([inter1_points_x.ravel(), inter1_points_y.ravel()]).T
-    delta_sin_x_func = RegularGridInterpolatorGPU((x_delta_sin, y_delta_sin), maskx, bounds_error=False)
-    delta_sin_y_func = RegularGridInterpolatorGPU((x_delta_sin, y_delta_sin), masky, bounds_error=False)
-    delta_sin_x_interp1 = delta_sin_x_func(inter1_points).reshape(inter1_points_x.shape)
-    delta_sin_y_interp1 = delta_sin_y_func(inter1_points).reshape(inter1_points_x.shape)
-    return delta_sin_x_interp1, delta_sin_y_interp1
+    delta_sin_x_interp1 = interpolator.grid_sample(maskx, interp1_points, mode=method, padding_mode='zeros',
+                                                   align_corners=True)
+    delta_sin_y_interp1 = interpolator.grid_sample(masky, interp1_points, mode=method, padding_mode='zeros',
+                                                   align_corners=True)
+    return delta_sin_x_interp1.squeeze(), delta_sin_y_interp1.squeeze()
 
 
 def find_mask_angles(inter1_points_x, inter1_points_y, maskx, masky, sampling_dist_mask_plane, method='linear'):
@@ -361,10 +362,10 @@ def find_forward_locations_gpu(X, Y, SinX, SinY, L, delta_sin_x_interp1, delta_s
     :param delta_sin_y_interp1: meshgrid of the Y element of the sines changes
     :return: the locations for the forward warping
     """
-    SinZ = cp.sqrt(1 - cp.power(SinX, 2) - cp.power(SinY, 2))
+    SinZ = torch.sqrt(1 - torch.pow(SinX, 2) - torch.pow(SinY, 2))
     inter2_points_sinx = SinX - delta_sin_x_interp1
     inter2_points_siny = SinY - delta_sin_y_interp1
-    sinz = cp.sqrt(1 - cp.power(inter2_points_sinx, 2) - cp.power(inter2_points_siny, 2))
+    sinz = torch.sqrt(1 - torch.pow(inter2_points_sinx, 2) - torch.pow(inter2_points_siny, 2))
     inter2_points_x = X - L * (inter2_points_sinx / sinz - SinX / SinZ)
     inter2_points_y = Y - L * (inter2_points_siny / sinz - SinY / SinZ)
     return inter2_points_x, inter2_points_y
@@ -396,7 +397,6 @@ def point_in_grid_gpu(x, y, height, width):
     return is_in_grid
 
 
-
 def create_weighted_forward(interp_x, interp_y, sampling_dist, matrix):
     """
     Warp a matrix to a standard grid with specified interpolation points, using forward warping
@@ -411,7 +411,6 @@ def create_weighted_forward(interp_x, interp_y, sampling_dist, matrix):
     matrix = matrix.flatten()
     weighted_matrix = (weight_matrix @ matrix).reshape(shape)
     return weighted_matrix
-
 
 
 def create_weighted_forward_for_phase_mask(interp_x, interp_y, sampling_dist, matrix, phase_mask_shape):
@@ -512,38 +511,38 @@ def create_transform_matrix_gpu(interp_x, interp_y, sampling_dist, phase_mask_sh
     inter2_points_y = (inter2_points_y + height_phase * sampling_dist / 2) / sampling_dist
 
     # finding the 4 neighboring indexes
-    high_x = cp.ceil(inter2_points_x)
-    low_x = cp.floor(inter2_points_x)
-    high_y = cp.ceil(inter2_points_y)
-    low_y = cp.floor(inter2_points_y)
+    high_x = torch.ceil(inter2_points_x)
+    low_x = torch.floor(inter2_points_x)
+    high_y = torch.ceil(inter2_points_y)
+    low_y = torch.floor(inter2_points_y)
 
     # checking whether the neighboring indexes are inside the LF grid
-    is_valid = cp.concatenate((point_in_grid_gpu(low_x, low_y, height_phase, width_phase),
-                               point_in_grid_gpu(high_x, low_y, height_phase, width_phase),
-                               point_in_grid_gpu(low_x, high_y, height_phase, width_phase),
-                               point_in_grid_gpu(high_x, high_y, height_phase, width_phase)))
+    is_valid = torch.concatenate((point_in_grid_gpu(low_x, low_y, height_phase, width_phase),
+                                  point_in_grid_gpu(high_x, low_y, height_phase, width_phase),
+                                  point_in_grid_gpu(low_x, high_y, height_phase, width_phase),
+                                  point_in_grid_gpu(high_x, high_y, height_phase, width_phase)))
 
     # calculating the neighbors' weights
-    upper_right_weight = (1 - cp.abs(high_x - inter2_points_x)) * (1 - cp.abs(high_y - inter2_points_y))
-    upper_left_weight = (1 - cp.abs(low_x - inter2_points_x)) * (1 - cp.abs(high_y - inter2_points_y))
-    lower_right_weight = (1 - cp.abs(high_x - inter2_points_x)) * (1 - cp.abs(low_y - inter2_points_y))
-    lower_left_weight = (1 - cp.abs(low_x - inter2_points_x)) * (1 - cp.abs(low_y - inter2_points_y))
-    weights = cp.concatenate((lower_left_weight, lower_right_weight, upper_left_weight, upper_right_weight))
+    upper_right_weight = (1 - torch.abs(high_x - inter2_points_x)) * (1 - torch.abs(high_y - inter2_points_y))
+    upper_left_weight = (1 - torch.abs(low_x - inter2_points_x)) * (1 - torch.abs(high_y - inter2_points_y))
+    lower_right_weight = (1 - torch.abs(high_x - inter2_points_x)) * (1 - torch.abs(low_y - inter2_points_y))
+    lower_left_weight = (1 - torch.abs(low_x - inter2_points_x)) * (1 - torch.abs(low_y - inter2_points_y))
+    weights = torch.concatenate((lower_left_weight, lower_right_weight, upper_left_weight, upper_right_weight))
 
     # converting to flattened indexes
     upper_right_idx = high_x + high_y * width_phase
     upper_left_idx = low_x + high_y * width_phase
     lower_right_idx = high_x + low_y * width_phase
     lower_left_idx = low_x + low_y * width_phase
-    row_idx = cp.concatenate(
-        (lower_left_idx, lower_right_idx, upper_left_idx, upper_right_idx)).astype(
-        int)
-    valid_idx = cp.squeeze(cp.argwhere(is_valid))
-    col_idx = cp.tile(cp.arange(height_matrix * width_matrix), 4)
+    row_idx = torch.concatenate(
+        (lower_left_idx, lower_right_idx, upper_left_idx, upper_right_idx)).int()
+    valid_idx = torch.squeeze(torch.argwhere(is_valid))
+    col_idx = torch.arange(height_matrix * width_matrix, device='cuda').tile((4,))
+    idx = torch.stack((row_idx[valid_idx], col_idx[valid_idx]))
 
     # creating the conversion matrix. size of HW_phase*HW_matrix, each column has max 4 weights (4 neighbors)
-    weight_matrix = csr_gpu((weights[valid_idx], (row_idx[valid_idx], col_idx[valid_idx])),
-                            shape=(height_phase * width_phase, height_matrix * width_matrix))
+    weight_matrix = torch.sparse_coo_tensor(idx, weights[valid_idx],
+                                            size=(height_phase * width_phase, height_matrix * width_matrix))
 
     return weight_matrix
 

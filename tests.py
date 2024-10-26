@@ -1,3 +1,4 @@
+from memory_profiler import memory_usage
 import numpy as np
 # import imagesc
 import matplotlib.pyplot as plt
@@ -25,10 +26,8 @@ sampling_dist_mask_plane = wavelength / 2
 sigma = 1
 N = 1  # window size (N*N)
 L = 100
-n_deltas = 5
+n_deltas = 10
 max_delta = 1 / 6
-# loading lf and mask
-lf = load_lf("pure")
 
 
 def forward_reconstruct_based_on_given_phase_mask(suffix, debug=False):
@@ -75,9 +74,9 @@ def forward_reconstruct_with_walker(suffix, debug):
     plt.show()
 
     # find the phase mask
-    finder = phase_mask_finder_walker(1, sampling_dist_mask_plane, sampling_dist_lf_plane, wavelength, sigma,
-                                      (1601, 1601), lf.shape, max_sin, L, n_deltas, max_delta, 'nearest')
-    phase_x, phase_y = finder.find_phase_mask(lf)
+    finder = phase_mask_finder_walker(10, sampling_dist_mask_plane, sampling_dist_lf_plane, wavelength, sigma,
+                                      (1601, 1601), lf.shape, max_sin, L, n_deltas, max_delta, 5, 2, 'nearest')
+    phase_x, phase_y = finder.find_phase_mask_gpu_debug(lf)
     phase_x = cp.asnumpy(phase_x)
     phase_y = cp.asnumpy(phase_y)
     display(phase_x, "angle x")
@@ -130,10 +129,13 @@ def tester(test, suffix, profile=False, debug=False):
     elif test == 'BW with mask':
         backward_reconstruct_based_on_given_phase_mask(suffix, debug)
     elif test == 'FW walker':
-        forward_reconstruct_with_walker(suffix, debug)
+        mem = memory_usage((forward_reconstruct_with_walker, (suffix, debug)))
+        print(mem)
+        #forward_reconstruct_with_walker(suffix, debug)
     elif test == 'FW gd':
         forward_reconstruct_with_gd(suffix, debug)
-
+    else:
+        raise NotImplemented("Test Not Implemented")
     if profile:
         profiler.disable()
         profiler.dump_stats('profile_data.prof')

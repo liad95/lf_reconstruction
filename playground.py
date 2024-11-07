@@ -1,6 +1,7 @@
 import torch
 import time
 import gc
+import numpy as np
 
 obj_dict = {}
 
@@ -192,6 +193,14 @@ def test():
             print(f"Matrix multiplication completed. Time taken: {end_time - start_time:.2f} seconds \n")
 
 
-test4()
-# Keep the program running so you can check GPU usage in the Task Manager
-# input("Check your task manager for GPU usage, then press Enter to exit.")
+# test4()
+# Define dimensions
+A = 5  # Replace with desired value for A
+B = 4  # Replace with desired value for B
+
+# Generate indices
+a = torch.tensor([[1, 2, ], [3, 4]])
+b = torch.tensor([[1, 2, ], [3, 4]])+4
+c = torch.concatenate((a,b))
+print(c)
+print(c.flatten())

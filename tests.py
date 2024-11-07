@@ -72,13 +72,16 @@ def forward_reconstruct_with_walker(suffix, debug):
     lf = load_lf(suffix)
     display_lf_summed(lf, 'LF')
     plt.show()
+    n_stepsize = 5
+    max_stepsize = 2
+    n_iter = 1
+    phase_mask_shape = (1601, 1601)
 
     # find the phase mask
-    finder = phase_mask_finder_walker(10, sampling_dist_mask_plane, sampling_dist_lf_plane, wavelength, sigma,
-                                      (1601, 1601), lf.shape, max_sin, L, n_deltas, max_delta, 5, 2, 'nearest')
+    finder = phase_mask_finder_walker(n_iter, sampling_dist_mask_plane, sampling_dist_lf_plane, wavelength, sigma,
+                                      phase_mask_shape, lf.shape, max_sin, L, n_deltas, max_delta, n_stepsize,
+                                      max_stepsize, 'nearest')
     phase_x, phase_y = finder.find_phase_mask_gpu(lf)
-    phase_x = cp.asnumpy(phase_x)
-    phase_y = cp.asnumpy(phase_y)
     display(phase_x, "angle x")
     display(phase_y, "angle y")
     plt.show()
@@ -90,7 +93,7 @@ def forward_reconstruct_with_walker(suffix, debug):
                                              lf.shape)
     lf_reconstructed_gradient = reconstructor.reconstruct_lf_with_gradient(lf, phase_x, phase_y)
     display_lf_summed(lf_reconstructed_gradient, "Reconstructed")
-    #plt.show()
+    plt.show()
 
 
 def forward_reconstruct_with_gd(suffix, debug):
@@ -131,7 +134,7 @@ def tester(test, suffix, profile=False, debug=False):
     elif test == 'FW walker':
         mem = memory_usage((forward_reconstruct_with_walker, (suffix, debug)))
         print(mem)
-        #forward_reconstruct_with_walker(suffix, debug)
+        # forward_reconstruct_with_walker(suffix, debug)
     elif test == 'FW gd':
         forward_reconstruct_with_gd(suffix, debug)
     else:

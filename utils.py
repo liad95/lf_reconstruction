@@ -321,6 +321,44 @@ def find_mask_angles_gpu2(inter1_points_x, inter1_points_y, maskx, masky, sampli
     return delta_sin_x_interp1, delta_sin_y_interp1
 
 
+def find_mask_angles_gpu2_for_score(inter1_points_x, inter1_points_y, maskx, masky, sampling_dist_mask_plane,
+                                    max_delta_x, max_delta_y, steps, method=''):
+    """
+    Interpolates the sines changes from the phase mask given the phase mask locations and angles, on GPU
+    :param inter1_points_x: meshgrid of relevant phase mask X locations
+    :param inter1_points_y: meshgrid of relevant phase mask Y locations
+    :param maskx: the X element of the phase mask gradient
+    :param masky: the Y element of the phase mask gradient
+    :param sampling_dist_mask_plane: the sampling distance of the phase mask plane
+    :param method: the method of interpolation from the phase mask, the default is 'linear'
+    :return: the sines changes from the phase mask
+    """
+    delta_sin_size = maskx.shape
+    points_shape = inter1_points_x.shape
+    inter1_points_x = inter1_points_x * 2 / ((delta_sin_size[0] - 1) * sampling_dist_mask_plane)
+    inter1_points_y = inter1_points_y * 2 / ((delta_sin_size[0] - 1) * sampling_dist_mask_plane)
+    inter1_points_x = inter1_points_x.reshape(points_shape[0] * points_shape[1], points_shape[2] * points_shape[3])
+    inter1_points_y = inter1_points_y.reshape(points_shape[0] * points_shape[1], points_shape[2] * points_shape[3])
+    interp1_points = torch.stack((inter1_points_x, inter1_points_y), dim=2).unsqueeze(0)
+    maskx = maskx.unsqueeze(0).unsqueeze(0)
+    masky = masky.unsqueeze(0).unsqueeze(0)
+    n_steps = len(steps)
+    maskx_stps = (steps.unsqueeze(-1).unsqueeze(-1) * max_delta_x.unsqueeze(0)).unsqueeze(1) + maskx
+    masky_stps = (steps.unsqueeze(-1).unsqueeze(-1) * max_delta_y.unsqueeze(0)).unsqueeze(1) + masky
+    maskx_stps = torch.where(torch.abs(maskx_stps) >= 0.5, 0.49, maskx_stps)
+    masky_stps = torch.where(torch.abs(masky_stps) >= 0.5, 0.49, masky_stps)
+    interp1_points = interp1_points.expand(n_steps, interp1_points.shape[1], interp1_points.shape[2],
+                                           interp1_points.shape[3])
+
+    delta_sin_x_interp1 = interpolator.grid_sample(maskx_stps, interp1_points, mode=method, padding_mode='zeros',
+                                                   align_corners=True)
+    delta_sin_y_interp1 = interpolator.grid_sample(masky_stps, interp1_points, mode=method, padding_mode='zeros',
+                                                   align_corners=True)
+    delta_sin_x_interp1 = delta_sin_x_interp1.squeeze().reshape(delta_sin_x_interp1.shape[0],*points_shape)
+    delta_sin_y_interp1 = delta_sin_y_interp1.squeeze().reshape(delta_sin_y_interp1.shape[0],*points_shape)
+    return delta_sin_x_interp1, delta_sin_y_interp1
+
+
 def find_mask_angles_gpu(inter1_points_x, inter1_points_y, maskx, masky, sampling_dist_mask_plane, method=''):
     """
     Interpolates the sines changes from the phase mask given the phase mask locations and angles, on GPU
@@ -472,12 +510,45 @@ def find_forward_locations_gpu_parallel2(X, Y, SinX, SinY, L, delta_sin_x_interp
     inter2_points_siny = SinY - delta_sin_y_interp1
 
     sinz_delta_x = torch.sqrt(1 - torch.pow(inter2_points_sinx_with_delta, 2) - torch.pow(inter2_points_siny, 2))
+    sinz_delta_y = torch.sqrt(1 - torch.pow(inter2_points_siny_with_delta, 2) - torch.pow(inter2_points_sinx, 2))
+
+    inter2_points_x_delta_x = (X - L * (inter2_points_sinx_with_delta / sinz_delta_x - SinX / SinZ)) / torch.max(X)
+    inter2_points_y_delta_x = (Y - L * (inter2_points_siny / sinz_delta_x - SinY / SinZ)) / torch.max(Y)
+    inter2_points_x_delta_y = (X - L * (inter2_points_sinx / sinz_delta_y - SinX / SinZ)) / torch.max(X)
+    inter2_points_y_delta_y = (Y - L * (inter2_points_siny_with_delta / sinz_delta_y - SinY / SinZ)) / torch.max(Y)
+    return (inter2_points_x_delta_x, inter2_points_y_delta_x), (inter2_points_x_delta_y, inter2_points_y_delta_y)
+
+
+def find_forward_locations_gpu_parallel2_for_score(X, Y, SinX, SinY, L, delta_sin_x_interp1, delta_sin_y_interp1):
+    """
+    Interpolates the locations for the forward warping given sines changes from the phase mask, and the LF locations and angles, on GPU
+    :param X: meshgrid of X locations in the LF plane
+    :param Y: meshgrid of Y locations in the LF plane
+    :param SinX: meshgrid of X angles in the LF
+    :param SinY: meshgrid of Y angles in the LF
+    :param L: Distance between the LF plane and the phase mask
+    :param delta_sin_x_interp1: meshgrid of the X element of the sines changes
+    :param delta_sin_y_interp1: meshgrid of the Y element of the sines changes
+    :return: the locations for the forward warping
+    """
+    SinX = SinX.unsqueeze(0)
+    SinY = SinY.unsqueeze(0)
+    delta_sin_x_interp1 = delta_sin_x_interp1
+    delta_sin_y_interp1 = delta_sin_y_interp1
+    SinZ = torch.sqrt(1 - torch.pow(SinX, 2) - torch.pow(SinY, 2))
+
+    inter2_points_sinx_with_delta = SinX - delta_sin_x_interp1
+    inter2_points_siny_with_delta = SinY - delta_sin_y_interp1
+    inter2_points_sinx = SinX - delta_sin_x_interp1
+    inter2_points_siny = SinY - delta_sin_y_interp1
+
+    sinz_delta_x = torch.sqrt(1 - torch.pow(inter2_points_sinx_with_delta, 2) - torch.pow(inter2_points_siny, 2))
     sinz_delta_y = torch.sqrt(1 - torch.pow(inter2_points_sinx, 2) - torch.pow(inter2_points_siny_with_delta, 2))
 
-    inter2_points_x_delta_x = X - L * (inter2_points_sinx_with_delta / sinz_delta_x - SinX / SinZ) / torch.max(X)
-    inter2_points_y_delta_x = Y - L * (inter2_points_siny / sinz_delta_x - SinY / SinZ) / torch.max(Y)
-    inter2_points_x_delta_y = X - L * (inter2_points_sinx / sinz_delta_y - SinX / SinZ) / torch.max(X)
-    inter2_points_y_delta_y = Y - L * (inter2_points_siny_with_delta / sinz_delta_y - SinY / SinZ) / torch.max(Y)
+    inter2_points_x_delta_x = (X - L * (inter2_points_sinx_with_delta / sinz_delta_x - SinX / SinZ)) / torch.max(X)
+    inter2_points_y_delta_x = (Y - L * (inter2_points_siny / sinz_delta_x - SinY / SinZ)) / torch.max(Y)
+    inter2_points_x_delta_y = (X - L * (inter2_points_sinx / sinz_delta_y - SinX / SinZ)) / torch.max(X)
+    inter2_points_y_delta_y = (Y - L * (inter2_points_siny_with_delta / sinz_delta_y - SinY / SinZ)) / torch.max(Y)
     return (inter2_points_x_delta_x, inter2_points_y_delta_x), (inter2_points_x_delta_y, inter2_points_y_delta_y)
 
 

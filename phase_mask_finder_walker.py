@@ -361,9 +361,9 @@ class phase_mask_finder_walker(phase_mask_finder):
     def _update_phase_mask_simple_gpu_parallel3(self, lf, max_delta_x, max_delta_y):
         # create a list of possible x and y delta combinations
         device = torch.device("cuda")
-        #step_sizes = torch.linspace(0, self.max_step_size, self.n_step_size, device=device)
-        #step_sizes = torch.cat((step_sizes, torch.tensor([1], device=device)))
-        step_sizes = torch.tensor([1], device=device)
+        step_sizes = torch.linspace(0, self.max_step_size, self.n_step_size, device=device)
+        step_sizes = torch.cat((step_sizes, torch.tensor([1], device=device)))
+        step_sizes = torch.tensor([1, 0], device=device)
         size_to_score_dict = {}
         max_step_size = 0
         max_step_size_score = 0
@@ -372,13 +372,12 @@ class phase_mask_finder_walker(phase_mask_finder):
         for step_size in step_sizes:
             phase_mask_x, phase_mask_y = find_phase_mask_locations_gpu2(self.X, self.Y, self.SinX, self.SinY, self.L)
 
-
             phase_maskx = self.phase_maskx + step_size * max_delta_x
             phase_masky = self.phase_masky + step_size * max_delta_y
 
-            display(phase_maskx.cpu().numpy(), f"angle x with step {step_size}")
-            display(phase_masky.cpu().numpy(), f"angle y with step {step_size}")
-            plt.show()
+            # display(phase_maskx.cpu().numpy(), f"angle x with step {step_size}")
+            # display(phase_masky.cpu().numpy(), f"angle y with step {step_size}")
+            # plt.show()
 
             # finding the gradient angle of the phase mask
             angle_x1, angle_y1 = find_mask_angles_gpu2(phase_mask_x, phase_mask_y,
@@ -402,8 +401,9 @@ class phase_mask_finder_walker(phase_mask_finder):
 
             # The cost
             weight_x = weight_x.reshape(mask_delta_x_shape)
-            display_lf_summed(torch.squeeze(weight_x).cpu().numpy(), name=f'weight {step_size}')
-            plt.show()
+            # display_lf_summed(torch.squeeze(weight_x).cpu().numpy(), name=f'weight {step_size}')
+            # plt.show()
+            # display_lf_summed(weight_x.squeeze().cpu().numpy(), str(step_size))
             weight_x = weight_x * lf
 
             size_to_score_dict[float(step_size.cpu())] = torch.sum(weight_x)
@@ -465,8 +465,11 @@ class phase_mask_finder_walker(phase_mask_finder):
         # The cost
         weight_x = weight_x.reshape(mask_delta_x_shape)
         weight_y = weight_y.reshape(mask_delta_x_shape)
+        
+
         weight_x = weight_x * lf
         weight_y = weight_y * lf
+
 
         weight_x = torch.transpose(torch.flatten(weight_x, start_dim=1), 0, 1)
         weight_y = torch.transpose(torch.flatten(weight_y, start_dim=1), 0, 1)
@@ -481,6 +484,126 @@ class phase_mask_finder_walker(phase_mask_finder):
         score_x = torch.transpose((transform_matrix @ weight_x), 0, 1).reshape(len(deltas),
                                                                                self.phase_mask_shape[0],
                                                                                self.phase_mask_shape[1])
+
+        score_y = torch.transpose((transform_matrix @ weight_y), 0, 1).reshape(len(deltas),
+                                                                               self.phase_mask_shape[0],
+                                                                               self.phase_mask_shape[1])
+
+        # Find the indices of the maximum values along the new axis (axis=0)
+        max_indices_x = torch.argmax(score_x, dim=0)
+        max_indices_y = torch.argmax(score_y, dim=0)
+
+        # Map the indices back to keys
+        max_delta_x = torch.tensor(deltas)[max_indices_x]
+        max_delta_y = torch.tensor(deltas)[max_indices_y]
+
+        return self._update_phase_mask(lf, max_delta_x, max_delta_y)
+
+    def single_iter_x_or_y_gpu_parallel2_debug(self, lf):
+        """
+        A single iteration of the walker maximize the energy of the warped light field in the defined mask.
+        The max delta is chosen, and added after iterating over all the LF angles.
+        The scores are found for uncoupled delta_x and delta_y (independently)
+        :param lf: the given light field
+        :return: the energy in the mask
+        """
+
+        # create a list of possible x and y delta combinations
+        device = torch.device("cuda")
+        deltas = torch.linspace(-self.max_delta, self.max_delta, self.n_delta, device=device)
+        if 0 not in deltas:
+            deltas = torch.concatenate((torch.tensor([0], device=device), deltas))
+        else:
+            zero_index = (deltas == 0).nonzero(as_tuple=True)[0].item()
+            # Swap the zero to the beginning
+            if zero_index != 0:  # Only rearrange if zero is not already at the beginning
+                tensor = torch.cat((deltas[zero_index:zero_index + 1], deltas[:zero_index], deltas[zero_index + 1:]))
+
+        # finding the locations on the phase mask
+        phase_mask_x, phase_mask_y = find_phase_mask_locations_gpu2(self.X, self.Y, self.SinX, self.SinY, self.L)
+
+        # finding the gradient angle of the phase mask
+        angle_x1, angle_y1 = find_mask_angles_gpu2(phase_mask_x, phase_mask_y,
+                                                   self.phase_maskx, self.phase_masky,
+                                                   self.sampling_dist_mask_plane, self.method)
+
+        # finding the forward locations with the delta in the angle gradient
+        mask_delta_x, mask_delta_y = find_forward_locations_gpu_parallel2(self.X, self.Y, self.SinX, self.SinY, self.L,
+                                                                          angle_x1, angle_y1, deltas)
+        mask_delta_x_shape = mask_delta_x[0].shape
+        flattened_shape = (mask_delta_x_shape[0], mask_delta_x_shape[1] * mask_delta_x_shape[2],
+                           mask_delta_x_shape[3] * mask_delta_x_shape[4])
+        mask_delta_x = (mask_delta_x[0].reshape(flattened_shape), mask_delta_x[1].reshape(flattened_shape))
+        mask_delta_y = (mask_delta_y[0].reshape(flattened_shape), mask_delta_y[1].reshape(flattened_shape))
+        # interpolation of the mask
+        mask_delta_x_loc = torch.stack(mask_delta_x, dim=-1)
+        mask_delta_y_loc = torch.stack(mask_delta_y, dim=-1)
+        func = self.mask[:, :, 0, 0].unsqueeze(0).unsqueeze(0).expand(len(deltas), -1, -1, -1)
+        weight_x = interpolator.grid_sample(func, mask_delta_x_loc, mode=self.method,
+                                            padding_mode='zeros',
+                                            align_corners=True).squeeze()
+        weight_y = interpolator.grid_sample(func, mask_delta_y_loc, mode=self.method,
+                                            padding_mode='zeros',
+                                            align_corners=True).squeeze()
+
+        # The cost
+        weight_x = weight_x.reshape(mask_delta_x_shape)
+        weight_y = weight_y.reshape(mask_delta_x_shape)
+        # display_lf_summed(weight_x[1].cpu().numpy(), "-1/6")
+        # display_lf_summed(weight_x[-1].cpu().numpy(), "1/6")
+        # plt.show()
+
+        weight_x = weight_x * lf
+        weight_y = weight_y * lf
+        display_all_patches(phase_mask_x, phase_mask_y, self.sampling_dist_mask_plane, "test")
+        alpha = display_lf_on_phase(phase_mask_x, phase_mask_y, self.sampling_dist_mask_plane, lf, "LF on Phase")
+
+        weight_x = torch.transpose(torch.flatten(weight_x, start_dim=1), 0, 1)
+        weight_y = torch.transpose(torch.flatten(weight_y, start_dim=1), 0, 1)
+
+        # create transformation matrix to convert to the phase_mask shape
+        transform_matrix = create_transform_matrix_gpu2(phase_mask_x, phase_mask_y,
+                                                        self.sampling_dist_mask_plane,
+                                                        self.phase_mask_shape, lf.shape)
+
+        # update the deltas' score
+
+        score_x = torch.transpose((transform_matrix @ weight_x), 0, 1).reshape(len(deltas),
+                                                                               self.phase_mask_shape[0],
+                                                                               self.phase_mask_shape[1])
+
+        # for debugging
+        X = phase_mask_x[:, :, 1, 1].cpu().numpy()
+        Y = phase_mask_y[:, :, 1, 1].cpu().numpy()
+        X = (X + 1601 * self.sampling_dist_mask_plane / 2) / self.sampling_dist_mask_plane
+        Y = (Y + 1601 * self.sampling_dist_mask_plane / 2) / self.sampling_dist_mask_plane
+        bottom_left = (np.min(X), np.min(Y))
+        top_right = (np.max(X), np.max(Y))
+        display_with_opacity(score_x[0].cpu().numpy(), alpha, "0")
+        plt.xlim(0, 1601)
+        plt.ylim(1601, 0)
+        # plt.xlim(bottom_left[0], top_right[0])  # Adjust as needed
+        # plt.ylim(bottom_left[0], top_right[1])  # Adjust as needed
+
+        display_with_opacity(score_x[1].cpu().numpy(), alpha, "1")
+        plt.xlim(0, 1601)
+        plt.ylim(1601, 0)
+        # plt.xlim(bottom_left[0], top_right[0])  # Adjust as needed
+        # plt.ylim(bottom_left[0], top_right[1])  # Adjust as needed
+        display_with_opacity(score_x[2].cpu().numpy(), alpha, "2")
+        plt.xlim(0, 1601)
+        plt.ylim(1601, 0)
+        # plt.xlim(bottom_left[0], top_right[0])  # Adjust as needed
+        # plt.ylim(bottom_left[0], top_right[1])  # Adjust as needed
+
+        display_with_opacity((score_x[2] > score_x[1]).cpu().numpy(), alpha, "2>1")
+        plt.xlim(0, 1601)
+        plt.ylim(1601, 0)
+        display_with_opacity((score_x[0] > score_x[1]).cpu().numpy(), alpha, "0>1")
+        plt.xlim(0, 1601)
+        plt.ylim(1601, 0)
+        # plt.xlim(bottom_left[0], top_right[0])  # Adjust as needed
+        # plt.ylim(bottom_left[0], top_right[1])  # Adjust as needed
         score_y = torch.transpose((transform_matrix @ weight_y), 0, 1).reshape(len(deltas),
                                                                                self.phase_mask_shape[0],
                                                                                self.phase_mask_shape[1])
@@ -494,6 +617,82 @@ class phase_mask_finder_walker(phase_mask_finder):
         max_delta_y = torch.tensor(deltas)[max_indices_y]
         # max_score = self._update_phase_mask(lf, max_delta_x, max_delta_y)
         # self._update_phase_mask_simple_gpu(lf, max_delta_x, max_delta_y)
+        return self._update_phase_mask(lf, max_delta_x, max_delta_y)
+
+    def single_iter_x_and_y_gpu_parallel2(self, lf):
+        """
+        A single iteration of the walker maximize the energy of the warped light field in the defined mask.
+        The max delta is chosen, and added after iterating over all the LF angles.
+        The scores are found for uncoupled delta_x and delta_y (independently)
+        :param lf: the given light field
+        :return: the energy in the mask
+        """
+
+        # create a list of possible x and y delta combinations
+        device = torch.device("cuda")
+        deltas_x = torch.linspace(-self.max_delta, self.max_delta, self.n_delta, device=device)
+        deltas_y = torch.linspace(-self.max_delta, self.max_delta, self.n_delta, device=device)
+        if 0 not in deltas_x:
+            deltas_x = torch.concatenate((torch.tensor([0], device=device), deltas_x))
+        else:
+            # TODO: Fix this
+            deltas = torch.concatenate(
+                (torch.tensor([0], device=device), torch.delete(deltas_x, torch.where(deltas_x == 0)[0])))
+        if 0 not in deltas_y:
+            deltas_y = torch.concatenate((torch.tensor([0], device=device), deltas_y))
+
+        # finding the locations on the phase mask
+        phase_mask_x, phase_mask_y = find_phase_mask_locations_gpu2(self.X, self.Y, self.SinX, self.SinY, self.L)
+
+        # finding the gradient angle of the phase mask
+        angle_x1, angle_y1 = find_mask_angles_gpu2(phase_mask_x, phase_mask_y,
+                                                   self.phase_maskx, self.phase_masky,
+                                                   self.sampling_dist_mask_plane, self.method)
+
+        # finding the forward locations with the delta in the angle gradient
+        mask_delta = find_forward_locations_gpu_parallel2_and(self.X, self.Y, self.SinX, self.SinY,
+                                                              self.L,
+                                                              angle_x1, angle_y1, deltas_x, deltas_y)
+        mask_delta_shape = mask_delta[0].shape
+        flattened_shape = (mask_delta_shape[0], mask_delta_shape[1] * mask_delta_shape[2],
+                           mask_delta_shape[3] * mask_delta_shape[4])
+        mask_delta = (mask_delta[0].reshape(flattened_shape), mask_delta[1].reshape(flattened_shape))
+        # interpolation of the mask
+        mask_delta_loc = torch.stack(mask_delta, dim=-1)
+        func = self.mask[:, :, 0, 0].unsqueeze(0).unsqueeze(0).expand(len(deltas_x) ** 2, -1, -1, -1)
+        weight = interpolator.grid_sample(func, mask_delta_loc, mode=self.method,
+                                          padding_mode='zeros',
+                                          align_corners=True).squeeze()
+
+        # The cost
+        weight = weight.reshape(mask_delta_shape)
+        weight_x = weight * lf
+        ## TODO: get rid of the transpose if possible
+        weight = torch.transpose(torch.flatten(weight, start_dim=1), 0, 1)
+
+        # create transformation matrix to convert to the phase_mask shape
+        transform_matrix = create_transform_matrix_gpu2(phase_mask_x, phase_mask_y,
+                                                        self.sampling_dist_mask_plane,
+                                                        self.phase_mask_shape, lf.shape)
+
+        # update the deltas' score
+
+        score = torch.transpose((transform_matrix @ weight), 0, 1).reshape(len(deltas_x) ** 2,
+                                                                           self.phase_mask_shape[0],
+                                                                           self.phase_mask_shape[1])
+
+        # print(f"{i},{j}")
+
+        # Find the indices of the maximum values along the new axis (axis=0)
+        max_indices = torch.argmax(score, dim=0)
+        deltas = torch.cartesian_prod(deltas_x, deltas_y)
+
+        # Map the indices back to keys
+        max_delta = deltas[max_indices, :]
+        max_delta_x = max_delta[:, :, 0]
+        max_delta_y = max_delta[:, :, 1]
+
+        # max_score = self._update_phase_mask(lf, max_delta_x, max_delta_y)
         return self._update_phase_mask(lf, max_delta_x, max_delta_y)
 
     def single_iter_x_or_y_gpu(self, lf):
@@ -705,15 +904,16 @@ class phase_mask_finder_walker(phase_mask_finder):
         :param gradient_x: the optimal delta in the x direction
         :param gradient_y: the optimal delta in the y direction
         """
+        # gradient_x = -torch.ones_like(gradient_x) * 1 / 6
+        # gradient_y = -torch.ones_like(gradient_y) * 1 / 6
         gradient_x = LPF(gradient_x, self.sigma)
         gradient_y = LPF(gradient_y, self.sigma)
         max_step, score = self._update_phase_mask_simple_gpu_parallel3(lf, gradient_x, gradient_y)
-        max_step = 1
-        #score = torch.tensor([0], device="cuda")
+        # max_step = 1
+        # score = torch.tensor([0], device='cuda')
         print(f"found max step {max_step} with score of: {score}")
-
-        #self.phase_maskx = self.phase_maskx + max_step * gradient_x
-        #self.phase_masky = self.phase_masky + max_step * gradient_y
+        # self.phase_maskx = -torch.ones_like(self.phase_maskx) * 1 / 6
+        # self.phase_masky = -torch.ones_like(self.phase_masky) * 1 / 6
         self.phase_maskx = self.phase_maskx + max_step * gradient_x
         self.phase_masky = self.phase_masky + max_step * gradient_y
 

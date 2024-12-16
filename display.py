@@ -1,6 +1,10 @@
+from scipy.interpolate import RegularGridInterpolator
 from scipy.io import loadmat
+import random
+import torch
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 
 
 def display_lf_summed(lf, name):
@@ -23,6 +27,13 @@ def display_mask(mask, name):
     display(image, f"Mask - {name}")
 
 
+def display_with_opacity(image, alpha, name):
+    plt.figure()
+    plt.imshow(image, alpha=alpha, cmap='viridis', interpolation='nearest')
+    plt.title(name)
+    plt.colorbar()
+
+
 def display(image, name):
     """
     Displays an image
@@ -33,6 +44,116 @@ def display(image, name):
     plt.imshow(image, cmap='viridis', interpolation='nearest')
     plt.title(name)
     plt.colorbar()
+
+
+def display_with_sum(image, name):
+    display(image, name + ", sum = " + str(np.sum(image)))
+
+
+def display_lf_on_phase(x, y, sampling_dist, data, name):
+    x = x.cpu().numpy().flatten()
+    y = y.cpu().numpy().flatten()
+    data = data.cpu().numpy().flatten()
+    x = (x + 1601 * sampling_dist / 2) / sampling_dist
+    y = (y + 1601 * sampling_dist / 2) / sampling_dist
+    # Plot the heatmap
+    plt.figure()
+    h, xedges, yedges, img = plt.hist2d(x, y, bins=(100, 50), weights=data, cmap='viridis')
+
+    # Add a colorbar
+    plt.colorbar(label='Sum of Data Value')
+
+    # Add a colorbar
+
+    plt.xlim(0, 1601)
+    plt.ylim(1601, 0)
+
+    # Labels and title
+    plt.xlabel('X-axis')
+    plt.ylabel('Y-axis')
+    plt.title(name)
+
+    # Compute bin centers
+    xcenters = 0.5 * (xedges[:-1] + xedges[1:])  # X bin centers
+    ycenters = 0.5 * (yedges[:-1] + yedges[1:])  # Y bin centers
+
+    # Note: `h` shape is (50, 100) because `plt.hist2d` transposes the axes.
+    # The dimensions of `xcenters` and `ycenters` must align with `h.T` for interpolation.
+    interpolator = RegularGridInterpolator((ycenters, xcenters), h.T, bounds_error=False, fill_value=0)
+
+    # Create the fine grid
+    grid_x = np.linspace(0, 1601, 1601)  # Fine grid along X
+    grid_y = np.linspace(0, 1601, 1601)  # Fine grid along Y
+    grid_xx, grid_yy = np.meshgrid(grid_x, grid_y)  # Create a 2D grid
+    points = np.array([grid_yy.ravel(), grid_xx.ravel()]).T  # Combine for interpolation
+    alpha = interpolator(points).reshape(grid_xx.shape)  # Interpolate and reshape
+
+    # Normalize alpha to [0, 1] for visualization
+    alpha = (alpha - np.nanmin(alpha)) / (np.nanmax(alpha) - np.nanmin(alpha))
+    alpha = np.nan_to_num(alpha)  # Replace NaNs with 0
+
+    plt.figure()
+    plt.imshow(alpha, cmap='viridis', interpolation='nearest')
+    plt.title("alpha")
+
+    return alpha
+
+
+def display_all_patches(X, Y, sampling_dist, name):
+    # Create a figure and axis
+    fig, ax = plt.subplots()
+    for i in range(7):
+        for j in range(7):
+            x = X[:, :, i, j].cpu().numpy()
+            y = Y[:, :, i, j].cpu().numpy()
+            x = (x + 1601 * sampling_dist / 2) / sampling_dist
+            y = (y + 1601 * sampling_dist / 2) / sampling_dist
+            bottom_left = (np.min(x), np.min(y))
+            top_right = (np.max(x), np.max(y))
+            # Calculate width and height of the rectangle
+            width = top_right[0] - bottom_left[0]
+            height = top_right[1] - bottom_left[1]
+
+            # Add the rectangle
+            rect = patches.Rectangle(bottom_left, width, height, linewidth=2, edgecolor='black',
+                                     facecolor=(random.random(), random.random(), random.random(), 0.5))
+            ax.add_patch(rect)
+
+        # Set the limits of the plot
+        ax.set_xlim(0, 1600)  # Adjust as needed
+        ax.set_ylim(1600, 0)  # Adjust as needed
+
+        # Display the plot
+        plt.gca().set_aspect('equal', adjustable='box')  # Keep the rectangle aspect ratio
+        plt.title(name)
+
+
+def display_patch(X, Y, i, j, sampling_dist, name):
+    X = X[:, :, i, j].cpu().numpy()
+    Y = Y[:, :, i, j].cpu().numpy()
+    X = (X + 1601 * sampling_dist / 2) / sampling_dist
+    Y = (Y + 1601 * sampling_dist / 2) / sampling_dist
+    bottom_left = (np.min(X), np.min(Y))
+    top_right = (np.max(X), np.max(Y))
+    # Calculate width and height of the rectangle
+    width = top_right[0] - bottom_left[0]
+    height = top_right[1] - bottom_left[1]
+
+    # Create a figure and axis
+    fig, ax = plt.subplots()
+
+    # Add the rectangle
+    rect = patches.Rectangle(bottom_left, width, height, linewidth=2, edgecolor='black',
+                             facecolor=(random.random(), random.random(), random.random(), 0.5))
+    ax.add_patch(rect)
+
+    # Set the limits of the plot
+    ax.set_xlim(0, 1600)  # Adjust as needed
+    ax.set_ylim(1600, 0)  # Adjust as needed
+
+    # Display the plot
+    plt.gca().set_aspect('equal', adjustable='box')  # Keep the rectangle aspect ratio
+    plt.title(name)
 
 
 def display_lf_2d(lf, name):

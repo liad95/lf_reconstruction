@@ -504,8 +504,8 @@ def find_forward_locations_gpu_parallel2(X, Y, SinX, SinY, L, delta_sin_x_interp
     delta_sin_y_interp1 = delta_sin_y_interp1.unsqueeze(0)
     SinZ = torch.sqrt(1 - torch.pow(SinX, 2) - torch.pow(SinY, 2))
 
-    inter2_points_sinx_with_delta = SinX - delta_sin_x_interp1 + deltas
-    inter2_points_siny_with_delta = SinY - delta_sin_y_interp1 + deltas
+    inter2_points_sinx_with_delta = SinX - (delta_sin_x_interp1 + deltas)
+    inter2_points_siny_with_delta = SinY - (delta_sin_y_interp1 + deltas)
     inter2_points_sinx = SinX - delta_sin_x_interp1
     inter2_points_siny = SinY - delta_sin_y_interp1
 
@@ -517,6 +517,39 @@ def find_forward_locations_gpu_parallel2(X, Y, SinX, SinY, L, delta_sin_x_interp
     inter2_points_x_delta_y = (X - L * (inter2_points_sinx / sinz_delta_y - SinX / SinZ)) / torch.max(X)
     inter2_points_y_delta_y = (Y - L * (inter2_points_siny_with_delta / sinz_delta_y - SinY / SinZ)) / torch.max(Y)
     return (inter2_points_x_delta_x, inter2_points_y_delta_x), (inter2_points_x_delta_y, inter2_points_y_delta_y)
+
+def find_forward_locations_gpu_parallel2_and(X, Y, SinX, SinY, L, delta_sin_x_interp1, delta_sin_y_interp1, deltas_x,
+                                             deltas_y):
+    """
+    Interpolates the locations for the forward warping given sines changes from the phase mask, and the LF locations and angles, on GPU
+    :param X: meshgrid of X locations in the LF plane
+    :param Y: meshgrid of Y locations in the LF plane
+    :param SinX: meshgrid of X angles in the LF
+    :param SinY: meshgrid of Y angles in the LF
+    :param L: Distance between the LF plane and the phase mask
+    :param delta_sin_x_interp1: meshgrid of the X element of the sines changes
+    :param delta_sin_y_interp1: meshgrid of the Y element of the sines changes
+    :return: the locations for the forward warping
+    """
+    deltas = torch.cartesian_prod(deltas_x, deltas_y)
+    deltas = deltas.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1).unsqueeze(-1)
+
+    SinX = SinX.unsqueeze(0)
+    SinY = SinY.unsqueeze(0)
+    delta_sin_x_interp1 = delta_sin_x_interp1.unsqueeze(0)
+    delta_sin_y_interp1 = delta_sin_y_interp1.unsqueeze(0)
+    SinZ = torch.sqrt(1 - torch.pow(SinX, 2) - torch.pow(SinY, 2))
+
+    inter2_points_sinx_with_delta = SinX - delta_sin_x_interp1 + deltas[:,0]
+    inter2_points_siny_with_delta = SinY - delta_sin_y_interp1 + deltas[:,1]
+
+    sinz_delta = torch.sqrt(
+        1 - torch.pow(inter2_points_sinx_with_delta, 2) - torch.pow(inter2_points_siny_with_delta, 2))
+
+    inter2_points_x_delta = (X - L * (inter2_points_sinx_with_delta / sinz_delta - SinX / SinZ)) / torch.max(X)
+    inter2_points_y_delta = (Y - L * (inter2_points_siny_with_delta / sinz_delta - SinY / SinZ)) / torch.max(Y)
+    return (inter2_points_x_delta, inter2_points_y_delta)
+
 
 
 def find_forward_locations_gpu_parallel2_for_score(X, Y, SinX, SinY, L, delta_sin_x_interp1, delta_sin_y_interp1):
@@ -773,8 +806,7 @@ def create_transform_matrix_gpu2(interp_x, interp_y, sampling_dist, phase_mask_s
     i, j = torch.arange(matrix_shape[2]).reshape(-1, 1), torch.arange(matrix_shape[3]).reshape(1, -1)
 
     # Compute matrix
-    indexes_add = matrix_shape[2] * j + matrix_shape[2] * matrix_shape[3] * i
-    indexes_add = indexes_add.unsqueeze(0).cuda()
+
     # converting to flattened indexes
     upper_right_idx = high_x + high_y * width_phase
     upper_left_idx = low_x + high_y * width_phase
@@ -782,7 +814,7 @@ def create_transform_matrix_gpu2(interp_x, interp_y, sampling_dist, phase_mask_s
     lower_left_idx = low_x + low_y * width_phase
     row_idx = torch.concatenate(
         (lower_left_idx, lower_right_idx, upper_left_idx, upper_right_idx))
-    row_idx = (row_idx + indexes_add).int().flatten()
+    row_idx = row_idx.int().flatten()
     valid_idx = torch.squeeze(torch.argwhere(is_valid.flatten()))
     col_idx = torch.arange(height_matrix * width_matrix * matrix_shape[2] * matrix_shape[3], device='cuda').tile((4,))
     idx = torch.stack((row_idx[valid_idx], col_idx[valid_idx]))

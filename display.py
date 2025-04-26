@@ -7,6 +7,25 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
 
+def display_lf_summed_with_mask(lf, sampling_dist, sigma, name):
+    """
+    Display the LF as an image (sums over the different angles)
+    :param lf: the light field
+    :param name: name for the figure
+    """
+    x = np.linspace(0, lf.shape[1] * sampling_dist,
+                    lf.shape[1], endpoint=False) - (lf.shape[1] - 1) * sampling_dist / 2
+    y = np.linspace(0, lf.shape[0] * sampling_dist,
+                    lf.shape[0], endpoint=False) - (lf.shape[0] - 1) * sampling_dist / 2
+    X, Y = np.meshgrid(x, y, indexing='ij')
+    mask = np.exp(-(np.power(X, 2) + np.power(Y, 2)) / (2 * sigma))
+    display(mask, "MASK")
+    image = np.sum(lf, axis=(2, 3))
+    lf_masked = image*mask
+    display(lf_masked, f"Summed LF - {name}")
+    return lf_masked
+
+
 def display_lf_summed(lf, name):
     """
     Display the LF as an image (sums over the different angles)

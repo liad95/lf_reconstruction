@@ -93,7 +93,6 @@ class phase_mask_finder_walker(phase_mask_finder):
         :param lf: the recorded light field
         :return: the phase mask angle gradient in x and y (phase_maskx, phase_masky)
         """
-
         lf = self._convert_to_tensor(lf)
         e = []
         for k in range(self.n_iter):
@@ -363,7 +362,7 @@ class phase_mask_finder_walker(phase_mask_finder):
         device = torch.device("cuda")
         step_sizes = torch.linspace(0, self.max_step_size, self.n_step_size, device=device)
         step_sizes = torch.cat((step_sizes, torch.tensor([1], device=device)))
-        step_sizes = torch.tensor([1, 0], device=device)
+        #step_sizes = torch.tensor([1, 0], device=device)
         size_to_score_dict = {}
         max_step_size = 0
         max_step_size_score = 0
@@ -434,7 +433,6 @@ class phase_mask_finder_walker(phase_mask_finder):
             # Swap the zero to the beginning
             if zero_index != 0:  # Only rearrange if zero is not already at the beginning
                 tensor = torch.cat((deltas[zero_index:zero_index + 1], deltas[:zero_index], deltas[zero_index + 1:]))
-
         # finding the locations on the phase mask
         phase_mask_x, phase_mask_y = find_phase_mask_locations_gpu2(self.X, self.Y, self.SinX, self.SinY, self.L)
 
@@ -465,7 +463,7 @@ class phase_mask_finder_walker(phase_mask_finder):
         # The cost
         weight_x = weight_x.reshape(mask_delta_x_shape)
         weight_y = weight_y.reshape(mask_delta_x_shape)
-        
+
 
         weight_x = weight_x * lf
         weight_y = weight_y * lf
@@ -489,7 +487,15 @@ class phase_mask_finder_walker(phase_mask_finder):
                                                                                self.phase_mask_shape[0],
                                                                                self.phase_mask_shape[1])
 
+        score_x = score_x.float()
+        score_y = score_y.float()
+        """
+        for i in range(len(deltas)):
+            score_x[i] = LPF(score_x[i], self.sigma)
+            score_y[i] = LPF(score_y[i], self.sigma)"""
+
         # Find the indices of the maximum values along the new axis (axis=0)
+
         max_indices_x = torch.argmax(score_x, dim=0)
         max_indices_y = torch.argmax(score_y, dim=0)
 

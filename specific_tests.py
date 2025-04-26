@@ -17,6 +17,7 @@ from phase_mask_finder import *
 import cProfile
 from phase_mask_finder_gd import phase_mask_finder_gd
 from phase_mask_finder_walker import phase_mask_finder_walker
+from datetime import datetime
 
 # constant parameters
 max_sin = 0.5
@@ -32,10 +33,11 @@ phase_mask_shape = (1601, 1601)
 
 def pure_with_actual_angle(debug):
     # run parameters
-    sigma = 5
-    n_deltas = 2
-    max_delta = 1 / 6
-    n_stepsize = 10
+    sigma = 10
+    n_deltas = 10
+    #max_delta = 1 / 6
+    max_delta = 0.1691
+    n_stepsize = 4
     max_stepsize = 2
     n_iter = 3
 
@@ -64,7 +66,12 @@ def pure_with_actual_angle(debug):
                                              lf.shape)
     # TODO: Check why i need to input the phase with minus??!?
     lf_reconstructed_gradient = reconstructor.reconstruct_lf_with_gradient(lf, phase_x, phase_y)
+    lf_masked = display_lf_summed_with_mask(lf_reconstructed_gradient, sampling_dist_lf_plane, sigma, "LF with MASK")
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    filename = f"my_array_{timestamp}.npy"
+    np.save(filename, lf_masked)
     display_lf_summed(lf_reconstructed_gradient, "Reconstructed")
+    display_lf_2d(lf_reconstructed_gradient, "Reconstruced - 2D")
     plt.show()
 
 
@@ -73,9 +80,9 @@ def parabola_with_actual_angle(debug):
     sigma = 5
     n_deltas = 10
     max_delta = 1 / 6
-    n_stepsize = 10
+    n_stepsize = 4
     max_stepsize = 2
-    n_iter = 10
+    n_iter = 1
 
     # load and display lf and mask
     lf = load_lf('parabola')
@@ -100,6 +107,7 @@ def parabola_with_actual_angle(debug):
                                              lf.shape)
     # TODO: Check why i need to input the phase with minus??!?
     lf_reconstructed_gradient = reconstructor.reconstruct_lf_with_gradient(lf, phase_x, phase_y)
+    lf_masked = display_lf_summed_with_mask(lf_reconstructed_gradient, sampling_dist_lf_plane, sigma, "LF with MASK")
     display_lf_summed(lf_reconstructed_gradient, "Reconstructed")
     plt.show()
 
@@ -109,7 +117,7 @@ def blur_with_actual_angle(debug):
     sigma = 5
     n_deltas = 10
     max_delta = 1 / 6
-    n_stepsize = 10
+    n_stepsize = 4
     max_stepsize = 2
     n_iter = 10
 

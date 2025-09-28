@@ -112,7 +112,7 @@ class phase_mask_finder_walker(phase_mask_finder):
                                                        self.sampling_dist_mask_plane, self.method)
 
             # finding the forward locations with the delta in the angle gradient
-            mask_delta_x, _ = find_forward_locations_gpu_parallel(self.X, self.Y, self.SinX,
+            mask_delta_x, _ = find_forward_locations_gpu_parallel2(self.X, self.Y, self.SinX,
                                                                   self.SinY, self.L,
                                                                   angle_x1, angle_y1, torch.tensor([0], device=device))
             mask_delta_x_shape = mask_delta_x[0].shape

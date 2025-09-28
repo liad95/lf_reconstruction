@@ -203,7 +203,7 @@ def find_forward_locations_gpu_parallel2_and(X, Y, SinX, SinY, L, delta_sin_x_in
     inter2_points_y_delta = (Y - L * (inter2_points_siny_with_delta / sinz_delta - SinY / SinZ)) / torch.max(Y)
     return (inter2_points_x_delta, inter2_points_y_delta)
 
-def find_forward_locations_gpu_parallel(X, Y, SinX, SinY, L, delta_sin_x_interp1, delta_sin_y_interp1, deltas):
+def find_forward_locations_gpu_parallel2(X, Y, SinX, SinY, L, delta_sin_x_interp1, delta_sin_y_interp1, deltas):
     """
     Interpolates the locations for the forward warping given sines changes from the phase mask, and the LF locations and angles, on GPU
     :param X: meshgrid of X locations in the LF plane
@@ -215,21 +215,25 @@ def find_forward_locations_gpu_parallel(X, Y, SinX, SinY, L, delta_sin_x_interp1
     :param delta_sin_y_interp1: meshgrid of the Y element of the sines changes
     :return: the locations for the forward warping
     """
-    deltas = deltas.unsqueeze(-1).unsqueeze(-1)
+    deltas = deltas.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1).unsqueeze(-1)
+    SinX = SinX.unsqueeze(0)
+    SinY = SinY.unsqueeze(0)
+    delta_sin_x_interp1 = delta_sin_x_interp1.unsqueeze(0)
+    delta_sin_y_interp1 = delta_sin_y_interp1.unsqueeze(0)
     SinZ = torch.sqrt(1 - torch.pow(SinX, 2) - torch.pow(SinY, 2))
 
-    inter2_points_sinx_with_delta = SinX - delta_sin_x_interp1.unsqueeze(0) + deltas
-    inter2_points_siny_with_delta = SinY - delta_sin_y_interp1.unsqueeze(0) + deltas
+    inter2_points_sinx_with_delta = SinX - (delta_sin_x_interp1 + deltas)
+    inter2_points_siny_with_delta = SinY - (delta_sin_y_interp1 + deltas)
     inter2_points_sinx = SinX - delta_sin_x_interp1
     inter2_points_siny = SinY - delta_sin_y_interp1
 
     sinz_delta_x = torch.sqrt(1 - torch.pow(inter2_points_sinx_with_delta, 2) - torch.pow(inter2_points_siny, 2))
-    sinz_delta_y = torch.sqrt(1 - torch.pow(inter2_points_sinx, 2) - torch.pow(inter2_points_siny_with_delta, 2))
+    sinz_delta_y = torch.sqrt(1 - torch.pow(inter2_points_siny_with_delta, 2) - torch.pow(inter2_points_sinx, 2))
 
-    inter2_points_x_delta_x = X - L * (inter2_points_sinx_with_delta / sinz_delta_x - SinX / SinZ) / torch.max(X)
-    inter2_points_y_delta_x = Y - L * (inter2_points_siny / sinz_delta_x - SinY / SinZ) / torch.max(Y)
-    inter2_points_x_delta_y = X - L * (inter2_points_sinx / sinz_delta_y - SinX / SinZ) / torch.max(X)
-    inter2_points_y_delta_y = Y - L * (inter2_points_siny_with_delta / sinz_delta_y - SinY / SinZ) / torch.max(Y)
+    inter2_points_x_delta_x = (X - L * (inter2_points_sinx_with_delta / sinz_delta_x - SinX / SinZ)) / torch.max(X)
+    inter2_points_y_delta_x = (Y - L * (inter2_points_siny / sinz_delta_x - SinY / SinZ)) / torch.max(Y)
+    inter2_points_x_delta_y = (X - L * (inter2_points_sinx / sinz_delta_y - SinX / SinZ)) / torch.max(X)
+    inter2_points_y_delta_y = (Y - L * (inter2_points_siny_with_delta / sinz_delta_y - SinY / SinZ)) / torch.max(Y)
     return (inter2_points_x_delta_x, inter2_points_y_delta_x), (inter2_points_x_delta_y, inter2_points_y_delta_y)
 def point_in_grid(x, y, height, width):
     """

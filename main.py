@@ -16,8 +16,8 @@ torch.set_grad_enabled(False)
 
 if __name__ == '__main__':
 
-    tester('FW walker', 'blur40', profile=True)
-    tester('FW with mask', 'blur100', profile=True)
+    tester('FW walker', 'none', profile=True)
+    #tester('FW with mask', 'blur100', profile=True)
     end_time = time.time()
 
     # Calculate the elapsed time

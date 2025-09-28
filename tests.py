@@ -26,7 +26,7 @@ sampling_dist_mask_plane = wavelength / 2
 sigma = 2
 N = 1  # window size (N*N)
 L = 100
-n_deltas = 30
+n_deltas = 5
 max_delta = 1 / 6
 
 # region general
@@ -99,7 +99,7 @@ def forward_reconstruct_with_walker(suffix, debug):
     #plt.show()
     n_stepsize = 10
     max_stepsize = 2
-    n_iter = 10
+    n_iter = 1
     phase_mask_shape = (1601, 1601)
 
     # find the phase mask
@@ -116,7 +116,7 @@ def forward_reconstruct_with_walker(suffix, debug):
     reconstructor = lf_forward_reconstructor(max_sin, wavelength, sampling_dist_lf_plane, sampling_dist_mask_plane, N,
                                              L, angle_finder,
                                              lf.shape)
-    lf_reconstructed_gradient = reconstructor.reconstruct_lf_with_gradient(lf, phase_x, phase_y)
+    lf_reconstructed_gradient = reconstructor.reconstruct_lf_with_gradient(lf, -phase_x, -phase_y)
     display_lf_summed(lf_reconstructed_gradient, "Reconstructed")
     plt.show()
 

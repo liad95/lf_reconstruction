@@ -124,6 +124,7 @@ def display_all_patches(X, Y, sampling_dist, name):
     for i in range(7):
         for j in range(7):
             x = X[:, :, i, j].cpu().numpy()
+            x = X[:, :, i, j].cpu().numpy()
             y = Y[:, :, i, j].cpu().numpy()
             x = (x + 1601 * sampling_dist / 2) / sampling_dist
             y = (y + 1601 * sampling_dist / 2) / sampling_dist

@@ -291,6 +291,7 @@ def find_phase_mask_locations(X, Y, SinX, SinY, L):
     return inter1_points_x, inter1_points_y
 
 
+
 def find_mask_angles_gpu2(inter1_points_x, inter1_points_y, maskx, masky, sampling_dist_mask_plane, method=''):
     """
     Interpolates the sines changes from the phase mask given the phase mask locations and angles, on GPU

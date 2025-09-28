@@ -1,0 +1,979 @@
+#LyX 2.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 544
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass article
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\use_microtype false
+\use_dash_ligatures true
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\use_minted 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\is_math_indent 0
+\math_numbering_side default
+\quotes_style english
+\dynamic_quotes 0
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Part*
+Overview of the algorithm
+\end_layout
+
+\begin_layout Standard
+These are the main steps of the phase mask finder walker algorithm, using
+ 
+\begin_inset Quotes eld
+\end_inset
+
+AND
+\begin_inset Quotes erd
+\end_inset
+
+ in our deltas:
+\end_layout
+
+\begin_layout Enumerate
+We create a vector of possible deltas to change the phase mask gradient.
+ This must include the value 0 
+\end_layout
+
+\begin_layout Enumerate
+We find the locations on the phase mask which are of interest to us.
+ This means the locations that LF camera intersects with, using the angles
+ and locations 
+\end_layout
+
+\begin_layout Enumerate
+We interpolate the values of the phase mask gradient in these locations,
+ based on the phase mask gradient from the previous iteration (initialized
+ as 0s) 
+\end_layout
+
+\begin_layout Enumerate
+We find the FW locations of the mask, for each possible delta
+\end_layout
+
+\begin_layout Enumerate
+We interpolate the mask at these locations 
+\end_layout
+
+\begin_layout Enumerate
+We multiply with the LF, to get scores for each delta
+\end_layout
+
+\begin_layout Enumerate
+We create a transformation matrix, to convert from scores on the LF space,
+ to scores in the phase mask space
+\end_layout
+
+\begin_layout Enumerate
+We convert the scores to the phase mask space 
+\end_layout
+
+\begin_layout Enumerate
+We take the best delta for each phase mask location, based on the scores
+ 
+\end_layout
+
+\begin_layout Enumerate
+We pass this delta map through a LPF 
+\end_layout
+
+\begin_layout Enumerate
+We create a vector of possible step sizes to change the phase mask gradient.
+ This must include the value 0 
+\end_layout
+
+\begin_layout Enumerate
+We repeat step 2 
+\end_layout
+
+\begin_layout Enumerate
+We repeat step 3, based on an updated phase mask gradient, using a specific
+ step size 
+\end_layout
+
+\begin_layout Enumerate
+We find the FW locations of the mask 
+\end_layout
+
+\begin_layout Enumerate
+We interpolate the mask at these locations 
+\end_layout
+
+\begin_layout Enumerate
+We multiply with the LF, and sum to get the score for a specific step size
+ 
+\end_layout
+
+\begin_layout Enumerate
+We take the best step size, and update the phase mask gradient 
+\end_layout
+
+\begin_layout Part*
+Definitions
+\end_layout
+
+\begin_layout Standard
+In order to help the explanation be clear, we will define several things.
+\end_layout
+
+\begin_layout Section*
+LF
+\end_layout
+
+\begin_layout Standard
+First, a lightfield LF has 4 variables:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+X,Y,k_{x},k_{y}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Because 
+\begin_inset Formula $k$
+\end_inset
+
+ is constant, we can define 
+\begin_inset Formula $k_{x}=\sin\theta_{x},k_{x}=\sin\theta_{y}$
+\end_inset
+
+, ignoring the constant 
+\begin_inset Formula $k$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Each 
+\begin_inset Formula $\theta$
+\end_inset
+
+ angle is defind between the ray (after projecting to 2d slice) and the
+ z axis (the optical axis).
+ A light ray coming from the right (going left) will have a positive 
+\begin_inset Formula $\theta$
+\end_inset
+
+.
+ This is how it seems to be defined in the LF object.
+\end_layout
+
+\begin_layout Standard
+Thus, a lightfield space has 4 variables...
+ 
+\end_layout
+
+\begin_layout Standard
+The distance between the LF and the phase mask is 
+\begin_inset Formula $L$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Section*
+Phase Mask
+\end_layout
+
+\begin_layout Standard
+The Phase mask can be seen as a 2D function that has 2 variables:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+X,Y
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The function returns a change in 
+\begin_inset Formula $k$
+\end_inset
+
+, thus 
+\begin_inset Formula $\Delta k_{x},\Delta k_{y}$
+\end_inset
+
+.We will notate this function as 
+\begin_inset Formula $\vec{\phi}\left(x,y\right)$
+\end_inset
+
+.
+ We will define the change as thus:
+\end_layout
+
+\begin_layout Standard
+If a ray passes the Phase Mask with momentum 
+\begin_inset Formula $\vec{k}$
+\end_inset
+
+ the output ray will have momentum 
+\begin_inset Formula $\vec{k}+\Delta\vec{k}$
+\end_inset
+
+ before normalization.
+\end_layout
+
+\begin_layout Section*
+3 Different LFs Spaces
+\end_layout
+
+\begin_layout Standard
+We have 3 different LF spaces.
+ 
+\end_layout
+
+\begin_layout Standard
+First, the one that was input.
+ We will notate this by the letter 
+\begin_inset Formula $i$
+\end_inset
+
+.
+ Second, we have the LF we will reconstruct, which will be notated by the
+ letter 
+\begin_inset Formula $r$
+\end_inset
+
+.
+ Then, we have the Amplitude mask.
+ In this case we will use the letter 
+\begin_inset Formula $m$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Let us go over the algorithm steps.
+\end_layout
+
+\begin_layout Part*
+Algorithm Steps
+\end_layout
+
+\begin_layout Section*
+1
+\end_layout
+
+\begin_layout Standard
+We create a deltas array 
+\begin_inset Formula $\delta k$
+\end_inset
+
+.
+ In our case, we are tying both axes, so each element in the array is actually
+ a 2d vector in itself: 
+\begin_inset Formula $\delta k_{x},\delta k_{y}$
+\end_inset
+
+.
+ We will go over each of these possible delta vectors.
+ We include the value 
+\begin_inset Formula $\left(0,0\right)$
+\end_inset
+
+ so that we can always compare to the previous iteration.
+\end_layout
+
+\begin_layout Section*
+2.
+\end_layout
+
+\begin_layout Standard
+For each location on 
+\begin_inset Formula $LF$
+\end_inset
+
+ (for now it doesn't matter which LF, as they have the same axes) we find
+ where the ray intersects with the phase mask.
+ At location 
+\begin_inset Formula $\left(x,y,k_{x},k_{y}\right)$
+\end_inset
+
+ on 
+\begin_inset Formula $LF$
+\end_inset
+
+ the intersecting point will be:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left(x-\Delta x,y-\Delta y\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Where:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\Delta x=-L\tan\theta_{x}=-L\frac{\sin\theta_{x}}{\cos\theta_{x}}=-L\frac{k_{x}}{k_{z}}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Thus:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+x_{PM}\left(x,y,k_{x},k_{y}\right)=x+L\frac{k_{x}}{k_{z}}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+y_{PM}\left(x,y,k_{x},k_{y}\right)=y+L\frac{k_{y}}{k_{z}}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+3.
+\end_layout
+
+\begin_layout Standard
+Now, we interpolate the change in 
+\begin_inset Formula $k$
+\end_inset
+
+ due to the phase mask at this location:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\vec{\Delta k}=\vec{\phi}\left(x_{PM},y_{PM}\right)=\vec{\phi}\left(x+L\frac{k_{x}}{k_{z}},y+L\frac{k_{y}}{k_{z}}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+4.
+\end_layout
+
+\begin_layout Standard
+Now, we find the FW location for each LF location.
+ We do this by adding a constant 
+\begin_inset Formula $\delta k$
+\end_inset
+
+ to the 
+\begin_inset Formula $\Delta k$
+\end_inset
+
+ that we have found in 3, and so find the FW location.
+\end_layout
+
+\begin_layout Standard
+Now, the new location is at:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+x_{FW}=x-\Delta x+\Delta x_{new}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Where:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\Delta x=-L\tan\theta_{x}=-L\frac{k_{x}}{k_{z}}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\Delta x_{new}=-L\cdot\tan\theta_{x,new}=-L\cdot\frac{k_{x,new}}{k_{z,new}}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Where:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+k_{x,new}=k_{x}-\Delta k_{x}\left(x+L\frac{k_{x}}{k_{z}},y+L\frac{k_{y}}{k_{z}}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+k_{y,new}=k_{y}-\Delta k_{y}\left(x+L\frac{k_{x}}{k_{z}},y+L\frac{k_{y}}{k_{z}}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+k_{z,new}=k\cdot\left(1-k_{x,new}^{2}-k_{y,new}^{2}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+All in all:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+x_{FW}=x+L\left(\cdot\frac{k_{x}}{k_{z}}-\frac{k_{x,new}}{k_{z,new}}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+y_{FW}=y+L\left(\cdot\frac{k_{y}}{k_{z}}-\frac{k_{y,new}}{k_{z,new}}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+5.
+\end_layout
+
+\begin_layout Standard
+Now, we interpolate the Amplitude Mask at these locations:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+LF_{m}\left(x_{FW},y_{FW}\right)=LF_{m}\left(x_{FW},y_{FW}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The angle here doesn't matter, as this is the same for all angles.
+\end_layout
+
+\begin_layout Section*
+6.
+\end_layout
+
+\begin_layout Standard
+We multiply with the 
+\begin_inset Formula $LF_{i}$
+\end_inset
+
+.
+ Thus, for each point in 
+\begin_inset Formula $LF_{i}$
+\end_inset
+
+ we get a certain score:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+LF_{i}\left(x,y,\theta_{x},\theta_{y}\right)\cdot LF_{m}\left(x_{FW},y_{FW},\theta_{x},\theta_{y}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Where of course 
+\begin_inset Formula $x_{FW},y_{FW}$
+\end_inset
+
+ are functions of 
+\begin_inset Formula $\left(x,y,\theta_{x},\theta_{y}\right)$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Section*
+7.
+\end_layout
+
+\begin_layout Standard
+We have now found, for each delta, the score that this delta has for a certain
+ location in the phase mask.
+ We have already found this location in step 2.
+ However, this score is now in the LF space.
+ |We want it to be in the Phase Mask space.
+ Thus, we create a transformation mask.
+\end_layout
+
+\begin_layout Standard
+Each point in LF space we have found in the interpolation can be defined
+ as a point relevant to 4 points in the phase mask space grid.
+ We flatten the Score/Weight matrix (what we got in step 6), to get 
+\begin_inset Formula $W_{LF}$
+\end_inset
+
+.
+ We want to convert this to 
+\begin_inset Formula $W_{PM}$
+\end_inset
+
+(PM for phase mask).
+ Thus, we need a transformation matrix 
+\begin_inset Formula $M$
+\end_inset
+
+:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+W_{PM}=M\cdot W_{LF}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Notice the sizes:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left(W_{LF}\right)_{\left|X_{LF}\right|\cdot\left|Y_{LF}\right|\cdot\left|\theta_{x,LF}\right|\cdot\left|\theta_{y,LF}\right|}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left(W_{PM}\right)_{\left|X_{PM}\right|\cdot\left|Y_{PM}\right|}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+M_{\left|X_{PM}\right|\cdot\left|Y_{PM}\right|,\left|X_{LF}\right|\cdot\left|Y_{LF}\right|\cdot\left|\theta_{x,LF}\right|\cdot\left|\theta_{y,LF}\right|}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+In order to create 
+\begin_inset Formula $M$
+\end_inset
+
+ we do the following:
+\end_layout
+
+\begin_layout Enumerate
+Find for each point 
+\begin_inset Formula $\left(x_{PM},y_{PM}\right)$
+\end_inset
+
+ the 4 relevant indices in the Phase Mask grid they fall in between.
+\end_layout
+
+\begin_layout Enumerate
+Test if these indices are valid, as in, are they in the grid.
+\end_layout
+
+\begin_layout Enumerate
+Calculate the weights for each of these 4 pixels.
+\end_layout
+
+\begin_layout Enumerate
+Convert these indices to indices for the flattened Phase Mask
+\end_layout
+
+\begin_layout Enumerate
+Define the relevant rows in the 
+\begin_inset Formula $M$
+\end_inset
+
+ matrix.
+ The relevant rows are the relevant indices we have found.
+\end_layout
+
+\begin_layout Enumerate
+Define the relevant columns, which just make sure that we take each point
+ 4, as mentioned.
+\end_layout
+
+\begin_layout Enumerate
+Create a Sparse matrix, with these rows, columns, and weights as defined
+\end_layout
+
+\begin_layout Standard
+The difficult part here is making sure we are doing the flattening right,
+ and taking it into account correctly.
+\end_layout
+
+\begin_layout Section*
+8.
+\end_layout
+
+\begin_layout Standard
+Now, we can convert the Weights/Score:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+W_{PM}=M\cdot W_{LF}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+9.
+\end_layout
+
+\begin_layout Standard
+We notice that 
+\begin_inset Formula $W_{LF}$
+\end_inset
+
+ is actually a 5D matrix, the first 4 are of the LF, but the last one is
+ of the deltas 
+\begin_inset Formula $\vec{\delta k}$
+\end_inset
+
+.
+ Thus, for each delta, we get a different Score map in the Phase Mask Space.
+ For each location in this space, we choose the best one.
+ As in:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\vec{\delta k}\left(x,y\right)=\underset{\vec{\delta k}}{\text{argmax}}W_{PM}\left(x,y\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+10.
+\end_layout
+
+\begin_layout Standard
+We got a delta map 
+\begin_inset Formula $\vec{\delta k}\left(x,y\right)$
+\end_inset
+
+.
+ We pass this through a LPF
+\end_layout
+
+\begin_layout Section*
+11.
+\end_layout
+
+\begin_layout Standard
+We create a possible vector of 
+\begin_inset Formula $\alpha$
+\end_inset
+
+'s.
+ This must include 0, and preferably 1.
+\end_layout
+
+\begin_layout Section*
+12.
+\end_layout
+
+\begin_layout Standard
+We repeat step 2
+\end_layout
+
+\begin_layout Section*
+13.
+\end_layout
+
+\begin_layout Standard
+We repeat step 3, but now with an updated Phase Mask, like so:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\vec{\Delta k}=\vec{\phi}_{new}\left(x_{PM},y_{PM}\right)=\vec{\phi}_{new}\left(x+L\frac{k_{x}}{k_{z}},y+L\frac{k_{y}}{k_{z}}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Where:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\vec{\phi}_{new}\left(x,y\right)=\vec{\phi}\left(x,y\right)+\alpha\cdot\vec{\delta k}\left(x,y\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+14.
+\end_layout
+
+\begin_layout Standard
+We repeat step 4.
+\end_layout
+
+\begin_layout Section*
+15.
+\end_layout
+
+\begin_layout Standard
+We repeat step 5.
+\end_layout
+
+\begin_layout Section*
+16.
+\end_layout
+
+\begin_layout Standard
+We repeat step 6 to get:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+W_{LF}\left(x,y,\theta_{x},\theta_{y}\right)=LF_{i}\left(x,y,\theta_{x},\theta_{y}\right)\cdot LF_{m}\left(x_{FW},y_{FW},\theta_{x},\theta_{y}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+And now we sum 
+\begin_inset Formula $W_{LF}$
+\end_inset
+
+ up to get a total score for a specific 
+\begin_inset Formula $\alpha$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Section*
+17.
+\end_layout
+
+\begin_layout Standard
+We choose the best alpha, as in:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\hat{\alpha}=\underset{\alpha}{\text{argmax}}\text{Sum}\left(W_{LF}\left(x,y,\theta_{x},\theta_{y},\alpha\right)\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+=\underset{\alpha}{\text{argmax}}\text{Sum}\left(LF_{i}\left(x,y,\theta_{x},\theta_{y}\right)\cdot LF_{m}\left(x_{FW}\left(\alpha\right),y_{FW}\left(\alpha\right),\theta_{x},\theta_{y}\right)\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+And then we update the Phase Mask:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\vec{\phi}\left(x,y\right)=\vec{\phi}\left(x,y\right)+\hat{\alpha}\cdot\vec{\delta k}\left(x,y\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document

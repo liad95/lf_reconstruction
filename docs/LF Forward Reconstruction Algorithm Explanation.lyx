@@ -1,0 +1,583 @@
+#LyX 2.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 544
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass article
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\use_microtype false
+\use_dash_ligatures true
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\use_minted 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\is_math_indent 0
+\math_numbering_side default
+\quotes_style english
+\dynamic_quotes 0
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Part*
+Overview of the algorithm
+\end_layout
+
+\begin_layout Standard
+These are the main steps of the forward warping LF recontruction algorithm:
+\end_layout
+
+\begin_layout Enumerate
+We find the locations on the phase mask which are of interest to us.
+ This means the locations that LF camera intersects with, using the angles
+ and locations 
+\end_layout
+
+\begin_layout Enumerate
+We interpolate the values of the phase mask gradient in these locations,
+ based on the given phase mask
+\end_layout
+
+\begin_layout Enumerate
+We find the FW locations
+\end_layout
+
+\begin_layout Enumerate
+We create a transformation matrix, in order to apply the forwarding
+\end_layout
+
+\begin_layout Enumerate
+We perform the forward warping using the transformation matrix
+\end_layout
+
+\begin_layout Part*
+Definitions
+\end_layout
+
+\begin_layout Standard
+In order to help the explanation be clear, we will define several things.
+\end_layout
+
+\begin_layout Section*
+LF
+\end_layout
+
+\begin_layout Standard
+First, a lightfield LF has 4 variables:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+X,Y,k_{x},k_{y}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Because 
+\begin_inset Formula $k$
+\end_inset
+
+ is constant, we can define 
+\begin_inset Formula $k_{x}=\sin\theta_{x},k_{x}=\sin\theta_{y}$
+\end_inset
+
+, ignoring the constant 
+\begin_inset Formula $k$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Each 
+\begin_inset Formula $\theta$
+\end_inset
+
+ angle is defind between the ray (after projecting to 2d slice) and the
+ z axis (the optical axis).
+ A light ray coming from the right (going left) will have a positive 
+\begin_inset Formula $\theta$
+\end_inset
+
+.
+ This is how it seems to be defined in the LF object.
+\end_layout
+
+\begin_layout Standard
+Thus, a lightfield space has 4 variables...
+ 
+\end_layout
+
+\begin_layout Standard
+The distance between the LF and the phase mask is 
+\begin_inset Formula $L$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Section*
+Phase Mask
+\end_layout
+
+\begin_layout Standard
+The Phase mask can be seen as a 2D function that has 2 variables:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+X,Y
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The function returns a change in 
+\begin_inset Formula $k$
+\end_inset
+
+, thus 
+\begin_inset Formula $\Delta k_{x},\Delta k_{y}$
+\end_inset
+
+.We will notate this function as 
+\begin_inset Formula $\vec{\phi}\left(x,y\right)$
+\end_inset
+
+.
+ We will define the change as thus:
+\end_layout
+
+\begin_layout Standard
+If a ray passes the Phase Mask with momentum 
+\begin_inset Formula $\vec{k}$
+\end_inset
+
+ the output ray will have momentum 
+\begin_inset Formula $\vec{k}+\Delta\vec{k}$
+\end_inset
+
+ before normalization.
+\end_layout
+
+\begin_layout Section*
+2 Different LFs Spaces
+\end_layout
+
+\begin_layout Standard
+We have 2 different LF spaces.
+ 
+\end_layout
+
+\begin_layout Standard
+First, the one that was input.
+ We will notate this by the letter 
+\begin_inset Formula $i$
+\end_inset
+
+.
+ Second, we have the LF we will reconstruct, which will be notated by the
+ letter 
+\begin_inset Formula $r$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Let us go over the algorithm steps.
+\end_layout
+
+\begin_layout Part*
+Algorithm Steps
+\end_layout
+
+\begin_layout Section*
+1
+\end_layout
+
+\begin_layout Standard
+For each location on 
+\begin_inset Formula $LF$
+\end_inset
+
+ (for now it doesn't matter which LF, as they have the same axes) we find
+ where the ray intersects with the phase mask.
+ At location 
+\begin_inset Formula $\left(x,y,k_{x},k_{y}\right)$
+\end_inset
+
+ on 
+\begin_inset Formula $LF$
+\end_inset
+
+ the intersecting point will be:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left(x-\Delta x,y-\Delta y\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Where:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\Delta x=-L\tan\theta_{x}=-L\frac{\sin\theta_{x}}{\cos\theta_{x}}=-L\frac{k_{x}}{k_{z}}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Thus:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+x_{PM}\left(x,y,k_{x},k_{y}\right)=x+L\frac{k_{x}}{k_{z}}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+y_{PM}\left(x,y,k_{x},k_{y}\right)=y+L\frac{k_{y}}{k_{z}}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+2
+\end_layout
+
+\begin_layout Standard
+Now, we interpolate the change in 
+\begin_inset Formula $k$
+\end_inset
+
+ due to the phase mask at this location:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\vec{\Delta k}=\vec{\phi}\left(x_{PM},y_{PM}\right)=\vec{\phi}\left(x+L\frac{k_{x}}{k_{z}},y+L\frac{k_{y}}{k_{z}}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+3
+\end_layout
+
+\begin_layout Standard
+Now, we find the FW location for each LF location.
+\end_layout
+
+\begin_layout Standard
+Now, the new location is at:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+x_{FW}=x-\Delta x+\Delta x_{new}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Where:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\Delta x=-L\tan\theta_{x}=-L\frac{k_{x}}{k_{z}}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\Delta x_{new}=-L\cdot\tan\theta_{x,new}=-L\cdot\frac{k_{x,new}}{k_{z,new}}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Where:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+k_{x,new}=k_{x}-\Delta k_{x}\left(x+L\frac{k_{x}}{k_{z}},y+L\frac{k_{y}}{k_{z}}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+k_{y,new}=k_{y}-\Delta k_{y}\left(x+L\frac{k_{x}}{k_{z}},y+L\frac{k_{y}}{k_{z}}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+4
+\end_layout
+
+\begin_layout Standard
+We have now found, for each location of the LF, the forward location it
+ must go to.
+ However, when doing forward warping we must be careful in our summation
+ with out weights.
+ As several pixels in the Input LF can contribute to the Reconstructed LF.
+ Furthermore, each pixel in the Input LF, can will contribute to 4 (almost
+ always) pixels in the Reconstructed LF.
+\end_layout
+
+\begin_layout Standard
+This transformation can be described using a matrix.
+\end_layout
+
+\begin_layout Standard
+We flatten the LF matrix to get 
+\begin_inset Formula $LF_{I}$
+\end_inset
+
+.
+ We want to convert this to 
+\begin_inset Formula $LF_{R}$
+\end_inset
+
+.
+ Thus, we need a transformation matrix 
+\begin_inset Formula $M$
+\end_inset
+
+:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+LF_{R}=M\cdot LF_{I}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Notice the sizes:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left(LF_{I}\right)_{\left|X_{LF}\right|\cdot\left|Y_{LF}\right|\cdot\left|\theta_{x,LF}\right|\cdot\left|\theta_{y,LF}\right|}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left(LF_{R}\right)_{\left|X_{LF}\right|\cdot\left|Y_{LF}\right|\cdot\left|\theta_{x,LF}\right|\cdot\left|\theta_{y,LF}\right|}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+M_{\left|X_{LF}\right|\cdot\left|Y_{LF}\right|\cdot\left|\theta_{x,LF}\right|\cdot\left|\theta_{y,LF}\right|,\left|X_{LF}\right|\cdot\left|Y_{LF}\right|\cdot\left|\theta_{x,LF}\right|\cdot\left|\theta_{y,LF}\right|}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+In order to create 
+\begin_inset Formula $M$
+\end_inset
+
+ we do the following:
+\end_layout
+
+\begin_layout Enumerate
+Find for each point 
+\begin_inset Formula $\left(x_{FW},y_{FW}\right)$
+\end_inset
+
+ the 4 relevant indices in the Reconstructed LF grid they fall in between.
+\end_layout
+
+\begin_layout Enumerate
+Test if these indices are valid, as in, are they in the grid.
+\end_layout
+
+\begin_layout Enumerate
+Calculate the weights for each of these 4 pixels.
+\end_layout
+
+\begin_layout Enumerate
+Convert these indices to indices for the flattened Reconstructed LF
+\end_layout
+
+\begin_layout Enumerate
+Define the relevant rows in the 
+\begin_inset Formula $M$
+\end_inset
+
+ matrix.
+ The relevant rows are the relevant indices we have found.
+\end_layout
+
+\begin_layout Enumerate
+Define the relevant columns, which just make sure that we take each point
+ 4, as mentioned.
+\end_layout
+
+\begin_layout Enumerate
+Create a Sparse matrix, with these rows, columns, and weights as defined
+\end_layout
+
+\begin_layout Section*
+5
+\end_layout
+
+\begin_layout Standard
+Now, we can we can perform the forward warping:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+LF_{r}\left(x,y,k_{x},k_{y}\right)=W\cdot LF_{i}\left(x,y,k_{x},k_{y}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document

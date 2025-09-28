@@ -1,10 +1,9 @@
-from scipy.interpolate import RegularGridInterpolator
-from scipy.io import loadmat
 import random
-import torch
-import numpy as np
-import matplotlib.pyplot as plt
+
 import matplotlib.patches as patches
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.interpolate import RegularGridInterpolator
 
 
 def display_lf_summed_with_mask(lf, sampling_dist, sigma, name):
@@ -123,7 +122,6 @@ def display_all_patches(X, Y, sampling_dist, name):
     fig, ax = plt.subplots()
     for i in range(7):
         for j in range(7):
-            x = X[:, :, i, j].cpu().numpy()
             x = X[:, :, i, j].cpu().numpy()
             y = Y[:, :, i, j].cpu().numpy()
             x = (x + 1601 * sampling_dist / 2) / sampling_dist

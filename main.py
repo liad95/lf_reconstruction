@@ -1,11 +1,10 @@
 #from specific_tests import tester
-from tests import tester
-import numpy as np
 import time
+
+from tests import tester
+
 start_time = time.time()
 import torch
-from display import *
-import matplotlib.pyplot as plt
 
 torch.set_grad_enabled(False)
 
@@ -17,7 +16,7 @@ torch.set_grad_enabled(False)
 
 if __name__ == '__main__':
 
-    #tester('FW walker', 'blur40', profile=True)
+    tester('FW walker', 'blur40', profile=True)
     tester('FW with mask', 'blur100', profile=True)
     end_time = time.time()
 

@@ -1,15 +1,5 @@
-import numpy as np
-# import imagesc
-import matplotlib.pyplot as plt
-from scipy import signal
-from scipy.io import loadmat
-from utils import *
-from scipy.interpolate import RegularGridInterpolator
-from scipy.ndimage import zoom
+from AngleFinders.angle_finder import angle_finder
 from display import *
-from abc import abstractmethod
-from angle_finder import angle_finder
-from scipy.signal import convolve2d
 
 
 class gradient_angle_finder(angle_finder):

@@ -5,19 +5,19 @@ from tests import tester
 
 start_time = time.time()
 import torch
-
+from memory_profiler import profile
 torch.set_grad_enabled(False)
 
-"""
-'Single iter pure with actual angle'
-'Double iter pure with actual angle'    
-'N iter pure with actual angle'
-"""
 
 if __name__ == '__main__':
+    # options for test : 'FW with mask', 'BW with mask', 'FW walker', 'Correlation Analysis'
+    # options for suffix : 'blur40', 'blur100', 'none', 'parabola', 'pure', 'pure2', 'pure3', 'weak_parabola'
 
-    tester('FW walker', 'none', profile=True)
-    #tester('FW with mask', 'blur100', profile=True)
+    #tester('FW with mask', 'pure')
+    #tester('BW with mask', 'pure')
+    #tester('FW walker', 'pure')
+    tester('FW GD', 'pure')
+    #tester('Correlation Analysis', 'blur100')
     end_time = time.time()
 
     # Calculate the elapsed time

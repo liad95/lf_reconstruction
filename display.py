@@ -52,15 +52,18 @@ def display_with_opacity(image, alpha, name):
     plt.colorbar()
 
 
-def display(image, name):
+
+def display(image, name, xlabel = "X [pixel]", ylabel = "Y [pixel]"):
     """
     Displays an image
     :param image: the image to display
     :param name: name for the figure
     """
     plt.figure()
-    plt.imshow(image, cmap='viridis', interpolation='nearest')
+    plt.imshow(np.round(image, 10), cmap='viridis', interpolation='nearest')
     plt.title(name)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
     plt.colorbar()
 
 
@@ -76,7 +79,7 @@ def display_lf_on_phase(x, y, sampling_dist, data, name):
     y = (y + 1601 * sampling_dist / 2) / sampling_dist
     # Plot the heatmap
     plt.figure()
-    h, xedges, yedges, img = plt.hist2d(x, y, bins=(100, 50), weights=data, cmap='viridis')
+    h, xedges, yedges, img = plt.hist2d(x, y, bins=(1600, 1600), weights=data, cmap='viridis')
 
     # Add a colorbar
     plt.colorbar(label='Sum of Data Value')
@@ -187,6 +190,29 @@ def display_lf_2d(lf, name):
     lf_2d_inv = lf_2d_inv.transpose(2, 0, 3, 1).reshape(new_shape)
 
     display(lf_2d_inv, f"2d LF Inverse - {name}")
+
+def display_lf_2d_with_alpha(lf, alpha, name):
+    """
+    Display the LF as an image (displays all angles), where the angles are separated by lines.
+    Use the Weight for the alpha channel
+    :param lf: the light field
+    :param name: name for the figure
+    """
+    max_value = np.max(lf)
+    lf_2d_inv = np.pad(lf, ((1, 1), (1, 1), (0, 0), (0, 0)),
+                       constant_values=max_value)  # adding the lines to separate the angles
+    new_shape = (lf_2d_inv.shape[2] * lf_2d_inv.shape[0], lf_2d_inv.shape[3] * lf_2d_inv.shape[1])
+    lf_2d_inv = lf_2d_inv.transpose(2, 0, 3, 1).reshape(new_shape)
+
+    max_alpha = np.max(alpha)
+    alpha_2d_inv = np.pad(alpha, ((1, 1), (1, 1), (0, 0), (0, 0)),
+                       constant_values=max_alpha)  # adding the lines to separate the angles
+    new_shape = (alpha_2d_inv.shape[2] * alpha_2d_inv.shape[0], alpha_2d_inv.shape[3] * alpha_2d_inv.shape[1])
+    alpha_2d_inv = alpha_2d_inv.transpose(2, 0, 3, 1).reshape(new_shape)
+    alpha_2d_inv = alpha_2d_inv/max_alpha
+
+    display_with_opacity(lf_2d_inv, alpha_2d_inv,f"2d LF Inverse - {name}")
+
 
 
 def mask_lf(lf, radius, name, location=(0, 0)):

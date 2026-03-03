@@ -562,3 +562,6 @@ def load_mat_file(folder_path, file_name):
         return None
 
 # endregion
+
+def calc_correlation(matrix1, matrix2):
+    return np.sum(matrix1*matrix2)/(np.sqrt(np.sum(matrix1*matrix1))*np.sqrt(np.sum(matrix2*matrix2)))

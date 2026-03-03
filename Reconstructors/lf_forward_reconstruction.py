@@ -13,7 +13,7 @@ class lf_forward_reconstructor(lf_reconstructor):
         self.lf = lf
         self.delta_sin_x = gradientx
         self.delta_sin_y = gradienty
-        self._find_mask_location_points()
+        self.find_mask_location_points()
         self._get_interpolation_points()
         reconstructed_lf = self._forward_warp_lf()
         return reconstructed_lf
@@ -22,12 +22,12 @@ class lf_forward_reconstructor(lf_reconstructor):
         self.mask = mask
         self.delta_sin_x, self.delta_sin_y = self.angle_finder.get_delta_sin(self.mask)
 
-        self._find_mask_location_points()
+        self.find_mask_location_points()
         self._get_interpolation_points()
         reconstructed_lf = self._forward_warp_lf()
         return reconstructed_lf
 
-    def _find_mask_location_points(self):
+    def find_mask_location_points(self):
         self.inter1_points_x = self.X + self.L * self.SinX / self.SinZ
         self.inter1_points_y = self.Y + self.L * self.SinY / self.SinZ
 

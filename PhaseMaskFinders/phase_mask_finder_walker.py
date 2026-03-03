@@ -1,10 +1,15 @@
 import time
+from memory_profiler import profile
 
+import numpy as np
+
+from debug_utils import *
 import matplotlib.pyplot as plt
 import torch.nn.functional as F
 
 from PhaseMaskFinders.phase_mask_finder import phase_mask_finder
 from utils import *
+from display import *
 
 
 def LPF(phase_mask, sigma):
@@ -68,11 +73,16 @@ class phase_mask_finder_walker(phase_mask_finder):
         :param lf: the recorded light field
         :return: the phase mask angle gradient in x and y (phase_maskx, phase_masky)
         """
+
         lf = self._convert_to_tensor(lf)
         e = []
         for k in range(self.n_iter):
             start_time = time.time()  # Record the start time
-            e.append(self.single_iter_phase_mask_finder(lf).cpu().numpy())
+            display_score_for_different_deltas(self, lf)
+            #display_phase_gradient_regions_from_finder(self, lf, isWeighted=False)
+            display_phase_gradient_regions_from_finder(self, lf, isWeighted=True)
+            energy = self.single_iter_phase_mask_finder(lf).cpu().numpy()
+            e.append(energy)
             print(f"iter #{k} - {e}")
             end_time = time.time()  # Record the end time
             iteration_time = end_time - start_time  # Calculate the time taken
@@ -80,7 +90,7 @@ class phase_mask_finder_walker(phase_mask_finder):
 
         plt.figure()
         plt.plot(e)
-        plt.show()
+        plt.title("Energy in Mask Vs # Iter")
         return self.phase_maskx.cpu().numpy(), self.phase_masky.cpu().numpy()
 
 
@@ -90,7 +100,12 @@ class phase_mask_finder_walker(phase_mask_finder):
         device = torch.device("cuda")
         step_sizes = torch.linspace(0, self.max_step_size, self.n_step_size, device=device)
         step_sizes = torch.cat((step_sizes, torch.tensor([1], device=device)))
+        step_sizes = torch.cat((step_sizes, -step_sizes))
+
         #step_sizes = torch.tensor([1, 0], device=device)
+        display_FW_for_different_step_sizes(self, step_sizes, lf, max_delta_x, max_delta_y, 1)
+        display_step_sizes_find_process(self, max_delta_x, max_delta_y, lf, step_sizes)
+        display_single_pixel_mask_progression(self, lf, 120, 120, 3, 3)
         size_to_score_dict = {}
         max_step_size = 0
         max_step_size_score = 0
@@ -99,12 +114,9 @@ class phase_mask_finder_walker(phase_mask_finder):
         for step_size in step_sizes:
             phase_mask_x, phase_mask_y = find_phase_mask_locations_gpu(self.X, self.Y, self.SinX, self.SinY, self.L)
 
-            phase_maskx = self.phase_maskx - step_size * max_delta_x
-            phase_masky = self.phase_masky - step_size * max_delta_y
+            phase_maskx = self.phase_maskx + step_size * max_delta_x
+            phase_masky = self.phase_masky + step_size * max_delta_y
 
-            # display(phase_maskx.cpu().numpy(), f"angle x with step {step_size}")
-            # display(phase_masky.cpu().numpy(), f"angle y with step {step_size}")
-            # plt.show()
 
             # finding the gradient angle of the phase mask
             angle_x1, angle_y1 = find_mask_angles_gpu2(phase_mask_x, phase_mask_y,
@@ -128,9 +140,6 @@ class phase_mask_finder_walker(phase_mask_finder):
 
             # The cost
             weight_x = weight_x.reshape(mask_delta_x_shape)
-            # display_lf_summed(torch.squeeze(weight_x).cpu().numpy(), name=f'weight {step_size}')
-            # plt.show()
-            # display_lf_summed(weight_x.squeeze().cpu().numpy(), str(step_size))
             weight_x = weight_x * lf
 
             size_to_score_dict[float(step_size.cpu())] = torch.sum(weight_x)
@@ -141,7 +150,6 @@ class phase_mask_finder_walker(phase_mask_finder):
         print(size_to_score_dict)
 
         return max_step_size, max_step_size_score
-
 
     def single_iter_phase_mask_finder(self, lf):
         """
@@ -216,9 +224,9 @@ class phase_mask_finder_walker(phase_mask_finder):
         max_delta_y = max_delta[:, :, 1]
 
 
-        return self._update_phase_mask(lf, max_delta_x, max_delta_y)
+        return self.update_phase_mask(lf, max_delta_x, max_delta_y)
 
-    def _update_phase_mask(self, lf, gradient_x, gradient_y):
+    def update_phase_mask(self, lf, gradient_x, gradient_y):
         """
         Updates the phase mask according to the optimal delta
         :param gradient_x: the optimal delta in the x direction
